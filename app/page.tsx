@@ -1095,7 +1095,8 @@ export default function Home() {
                     const sections = extractSections(message.content);
                     const sectionMap = new Map<TabKey, Section>();
                     for (const s of sections) if (s.key !== "other" && !sectionMap.has(s.key)) sectionMap.set(s.key, s);
-                    const tabs: TabKey[] = ["summary", "eligibility", "documents", "apply"].filter((k) => sectionMap.has(k));
+                    const tabOrder = ["summary", "eligibility", "documents", "apply"] as const;
+                    const tabs: TabKey[] = tabOrder.filter((k): k is TabKey => sectionMap.has(k));
                     const showTabs = !isTypingThis && tabs.length >= 2 && message.content.length > 420;
                     const activeTab = activeTabs[message.id] || tabs[0];
                     const baseMarkdown = showTabs && activeTab ? sectionMap.get(activeTab)?.content || message.content : displayContent;
