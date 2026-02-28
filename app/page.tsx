@@ -315,6 +315,15 @@ function MoonIcon({ className }: { className?: string }) {
   );
 }
 
+function GearIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={className}>
+      <path d="M10.3 2.7h3.4l.5 2.1a7.8 7.8 0 0 1 1.7.7l1.9-1 2.4 2.4-1 1.9c.3.5.5 1.1.7 1.7l2.1.5v3.4l-2.1.5a7.8 7.8 0 0 1-.7 1.7l1 1.9-2.4 2.4-1.9-1a7.8 7.8 0 0 1-1.7.7l-.5 2.1h-3.4l-.5-2.1a7.8 7.8 0 0 1-1.7-.7l-1.9 1-2.4-2.4 1-1.9a7.8 7.8 0 0 1-.7-1.7l-2.1-.5v-3.4l2.1-.5a7.8 7.8 0 0 1 .7-1.7l-1-1.9 2.4-2.4 1.9 1a7.8 7.8 0 0 1 1.7-.7z" />
+      <circle cx="12" cy="12" r="3.2" />
+    </svg>
+  );
+}
+
 function CornerMotif({
   className,
   isDark,
@@ -432,6 +441,7 @@ export default function Home() {
   const [shortlist, setShortlist] = useState<SchemeCard[]>([]);
   const [showCompare, setShowCompare] = useState(false);
   const [showMobileHistory, setShowMobileHistory] = useState(false);
+  const [showSettingsMenu, setShowSettingsMenu] = useState(false);
   const [typedAssistant, setTypedAssistant] = useState<Record<string, string>>({});
   const [typingMessageId, setTypingMessageId] = useState<string | null>(null);
 
@@ -922,10 +932,14 @@ export default function Home() {
           </div>
           <button
             onClick={() => void sendMessage()}
-            disabled={loading}
-            className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-orange-500 to-amber-500 text-white shadow-sm transition-transform duration-200 hover:scale-[1.03] disabled:opacity-60"
+            disabled={loading || input.trim().length === 0}
+            className={`inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-white shadow-sm transition-transform duration-200 ${
+              input.trim().length === 0 || loading
+                ? "bg-transparent text-[#8f633a] shadow-none"
+                : "bg-gradient-to-br from-orange-500 to-amber-500 hover:scale-[1.03]"
+            } disabled:opacity-90`}
           >
-            ↑
+            {input.trim().length === 0 || loading ? <FlowerSpinner className="h-10 w-10" isDark={isDark} /> : "↑"}
           </button>
         </div>
       </div>
@@ -996,56 +1010,95 @@ export default function Home() {
               <div className={`text-sm font-semibold ${isDark ? "text-stone-200" : "text-slate-800"}`}>Yojana AI</div>
             </div>
             <div className="ml-auto flex items-center gap-2">
-              <button
-                onClick={() => setShowCompare((p) => !p)}
-                className={`hidden rounded-full border px-3 py-1.5 text-sm md:block ${isDark ? "border-amber-950/40 bg-[#231b14]" : "border-slate-300 bg-white"}`}
-              >
-                Shortlist ({shortlist.length})
-              </button>
-              <button
-                onClick={downloadSummary}
-                disabled={shortlist.length === 0}
-                className={`hidden rounded-full border px-3 py-1.5 text-sm disabled:opacity-50 md:block ${isDark ? "border-amber-950/40 bg-[#231b14]" : "border-slate-300 bg-white"}`}
-              >
-                Download PDF
-              </button>
-              <select
-                value={language}
-                onChange={(e) => setLanguage(e.target.value)}
-                className={`hidden rounded-full border px-2.5 py-1.5 text-xs md:px-3 md:text-sm lg:block ${isDark ? "border-amber-950/40 bg-[#231b14]" : "border-slate-300 bg-white"}`}
-              >
-                <option value="en">English</option>
-                <option value="hi">हिंदी</option>
-                <option value="mr">मराठी</option>
-              </select>
-              <button
-                onClick={() => setTheme((p) => (p === "dark" ? "light" : "dark"))}
-                className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1.5 text-xs md:gap-2 md:px-3 md:text-sm ${isDark ? "border-amber-950/40 bg-[#231b14]" : "border-slate-300 bg-white"}`}
-              >
-                {isDark ? <SunIcon className="h-4 w-4" /> : <MoonIcon className="h-4 w-4" />}
-                <span>{isDark ? "Light" : "Dark"}</span>
-              </button>
-              {authEnabled && session && (
+              <div className="relative">
                 <button
-                  onClick={handleSignOut}
-                  className={`rounded-full border px-2.5 py-1.5 text-xs md:px-3 md:text-sm ${isDark ? "border-amber-950/40 bg-[#231b14] text-stone-300" : "border-slate-300 bg-white text-slate-700"}`}
+                  onClick={() => setShowSettingsMenu((p) => !p)}
+                  className={`inline-flex h-9 w-9 items-center justify-center rounded-full border ${isDark ? "border-amber-950/40 bg-[#231b14] text-stone-300" : "border-slate-300 bg-white text-slate-700"}`}
+                  aria-label="Open settings"
                 >
-                  Sign out
+                  <GearIcon className="h-4 w-4" />
                 </button>
-              )}
-              {authEnabled && !session && (
-                <button
-                  onClick={() => {
-                    setAuthMode("signin");
-                    setAuthError(null);
-                    setAuthNotice(null);
-                    setShowAuthModal(true);
-                  }}
-                  className={`rounded-full border px-2.5 py-1.5 text-xs md:px-3 md:text-sm ${isDark ? "border-amber-950/40 bg-[#231b14] text-stone-300" : "border-slate-300 bg-white text-slate-700"}`}
-                >
-                  Sign in
-                </button>
-              )}
+                {showSettingsMenu && (
+                  <div className={`absolute right-0 mt-2 w-56 rounded-2xl border p-2 shadow-xl ${isDark ? "border-amber-950/40 bg-[#231b14]" : "border-slate-200 bg-white"}`}>
+                    <button
+                      onClick={() => {
+                        setShowCompare((p) => !p);
+                        setShowSettingsMenu(false);
+                      }}
+                      className={`mb-1 w-full rounded-lg px-3 py-2 text-left text-sm ${isDark ? "text-stone-200 hover:bg-[#2d241b]" : "text-slate-800 hover:bg-slate-50"}`}
+                    >
+                      Shortlist ({shortlist.length})
+                    </button>
+                    <button
+                      onClick={() => {
+                        downloadSummary();
+                        setShowSettingsMenu(false);
+                      }}
+                      disabled={shortlist.length === 0}
+                      className={`mb-1 w-full rounded-lg px-3 py-2 text-left text-sm disabled:opacity-50 ${isDark ? "text-stone-200 hover:bg-[#2d241b]" : "text-slate-800 hover:bg-slate-50"}`}
+                    >
+                      Download PDF
+                    </button>
+                    <div className={`mb-2 mt-1 border-t pt-2 ${isDark ? "border-amber-950/40" : "border-slate-200"}`}>
+                      <p className={`mb-1 px-1 text-[11px] uppercase tracking-[0.12em] ${isDark ? "text-stone-500" : "text-slate-500"}`}>Language</p>
+                      <div className="inline-flex w-full items-center rounded-full border p-0.5">
+                        {[
+                          { value: "en", label: "EN" },
+                          { value: "hi", label: "हिंदी" },
+                          { value: "mr", label: "मराठी" },
+                        ].map((lang) => (
+                          <button
+                            key={`menu-${lang.value}`}
+                            onClick={() => setLanguage(lang.value)}
+                            className={`flex-1 rounded-full px-2 py-1 text-xs ${
+                              language === lang.value
+                                ? isDark ? "bg-[#3a2d21] text-stone-100" : "bg-slate-100 text-slate-900"
+                                : isDark ? "text-stone-300" : "text-slate-600"
+                            }`}
+                          >
+                            {lang.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => {
+                        setTheme((p) => (p === "dark" ? "light" : "dark"));
+                        setShowSettingsMenu(false);
+                      }}
+                      className={`mb-1 inline-flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm ${isDark ? "text-stone-200 hover:bg-[#2d241b]" : "text-slate-800 hover:bg-slate-50"}`}
+                    >
+                      {isDark ? <SunIcon className="h-4 w-4" /> : <MoonIcon className="h-4 w-4" />}
+                      {isDark ? "Light mode" : "Dark mode"}
+                    </button>
+                    {authEnabled && session && (
+                      <button
+                        onClick={() => {
+                          handleSignOut();
+                          setShowSettingsMenu(false);
+                        }}
+                        className={`w-full rounded-lg px-3 py-2 text-left text-sm ${isDark ? "text-stone-200 hover:bg-[#2d241b]" : "text-slate-800 hover:bg-slate-50"}`}
+                      >
+                        Sign out
+                      </button>
+                    )}
+                    {authEnabled && !session && (
+                      <button
+                        onClick={() => {
+                          setAuthMode("signin");
+                          setAuthError(null);
+                          setAuthNotice(null);
+                          setShowAuthModal(true);
+                          setShowSettingsMenu(false);
+                        }}
+                        className={`w-full rounded-lg px-3 py-2 text-left text-sm ${isDark ? "text-stone-200 hover:bg-[#2d241b]" : "text-slate-800 hover:bg-slate-50"}`}
+                      >
+                        Sign in
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           </header>
 
@@ -1375,9 +1428,10 @@ export default function Home() {
               if (authLoading || authGoogleLoading) return;
               setShowAuthModal(false);
             }}
-            className="absolute inset-0 bg-black/45"
+            className="absolute inset-0 bg-black/35 backdrop-blur-[5px]"
             aria-label="Close sign in"
           />
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_20%,rgba(0,0,0,0.38)_100%)]" />
           <div className={`relative w-full max-w-md rounded-3xl border p-6 shadow-[0_16px_40px_rgba(15,23,42,0.16)] ${isDark ? "border-amber-950/40 bg-[#231b14]" : "border-slate-200 bg-white"}`}>
             <p className={`text-xs uppercase tracking-[0.2em] ${isDark ? "text-stone-400" : "text-slate-500"}`}>Yojana AI</p>
             <h2 className="mt-2 text-2xl font-semibold">Sign in to continue</h2>
