@@ -410,6 +410,7 @@ export default function Home() {
   const [authReady, setAuthReady] = useState(false);
   const [authMode, setAuthMode] = useState<"signin" | "signup">("signup");
   const [authLoading, setAuthLoading] = useState(false);
+  const [authGoogleLoading, setAuthGoogleLoading] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const [authNotice, setAuthNotice] = useState<string | null>(null);
   const [authEmail, setAuthEmail] = useState("");
@@ -514,6 +515,31 @@ export default function Home() {
       return;
     }
     const bootstrapAuth = async () => {
+      const hash = window.location.hash.startsWith("#") ? window.location.hash.slice(1) : "";
+      if (hash) {
+        const params = new URLSearchParams(hash);
+        const accessToken = params.get("access_token");
+        const refreshToken = params.get("refresh_token");
+        const errorDescription = params.get("error_description") || params.get("error");
+        if (errorDescription) {
+          setAuthError(decodeURIComponent(errorDescription));
+          window.history.replaceState({}, document.title, window.location.pathname + window.location.search);
+          setAuthReady(true);
+          return;
+        }
+        if (accessToken && refreshToken) {
+          try {
+            const user = await fetchSupabaseUser(accessToken);
+            persistSession({ accessToken, refreshToken, user });
+            window.history.replaceState({}, document.title, window.location.pathname + window.location.search);
+            setAuthReady(true);
+            return;
+          } catch {
+            persistSession(null);
+          }
+        }
+      }
+
       const raw = localStorage.getItem(authStorageKey);
       if (!raw) {
         setAuthReady(true);
@@ -537,6 +563,19 @@ export default function Home() {
     };
     void bootstrapAuth();
   }, [fetchSupabaseUser, refreshSupabaseSession]);
+
+  const startGoogleAuth = () => {
+    if (!authEnabled) {
+      setAuthError("Missing Supabase env vars in yojana-web.");
+      return;
+    }
+    setAuthError(null);
+    setAuthNotice(null);
+    setAuthGoogleLoading(true);
+    const redirectTo = window.location.origin;
+    const url = `${supabaseUrl}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(redirectTo)}`;
+    window.location.assign(url);
+  };
 
   const handleSignOut = () => {
     persistSession(null);
@@ -878,12 +917,33 @@ export default function Home() {
       <main className={`relative flex h-screen items-center justify-center px-4 ${isDark ? "bg-[#18130f] text-stone-100" : "bg-[#faf8f4] text-slate-900"}`}>
         <CornerMotif isDark={isDark} className="pointer-events-none absolute left-2 top-2 h-20 w-20 md:h-24 md:w-24" />
         <CornerMotif isDark={isDark} className="pointer-events-none absolute bottom-4 right-4 h-16 w-16 md:h-24 md:w-24" />
-        <div className={`w-full max-w-md rounded-3xl border p-6 ${isDark ? "border-amber-950/40 bg-[#231b14]" : "border-slate-200 bg-white"}`}>
-          <p className={`text-xs uppercase tracking-[0.18em] ${isDark ? "text-stone-400" : "text-slate-500"}`}>Yojana AI</p>
-          <h1 className="mt-2 text-2xl font-semibold">Create account to continue</h1>
+        <div className={`w-full max-w-md rounded-3xl border p-6 shadow-[0_16px_40px_rgba(15,23,42,0.08)] ${isDark ? "border-amber-950/40 bg-[#231b14]" : "border-slate-200 bg-white"}`}>
+          <p className={`text-xs uppercase tracking-[0.2em] ${isDark ? "text-stone-400" : "text-slate-500"}`}>Yojana AI</p>
+          <h1 className="mt-2 text-2xl font-semibold">Welcome back</h1>
           <p className={`mt-2 text-sm ${isDark ? "text-stone-300" : "text-slate-600"}`}>
-            Access to the scheme assistant is available only for signed-in users.
+            Sign in to continue your scheme search journey.
           </p>
+
+          <button
+            onClick={startGoogleAuth}
+            disabled={authGoogleLoading}
+            className={`mt-5 inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl border text-sm font-medium transition-all ${
+              isDark
+                ? "border-amber-900/50 bg-[#2d241b] text-stone-100 hover:bg-[#3a2d21]"
+                : "border-slate-200 bg-white text-slate-800 hover:bg-slate-50"
+            } disabled:opacity-70`}
+          >
+            <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden="true">
+              <path fill="#EA4335" d="M12 10.2v3.9h5.4c-.2 1.3-1.5 3.9-5.4 3.9-3.2 0-5.9-2.6-5.9-5.9s2.7-5.9 5.9-5.9c1.8 0 3 .8 3.7 1.4l2.5-2.4C16.7 3.8 14.6 3 12 3 7 3 3 7 3 12s4 9 9 9c5.2 0 8.6-3.6 8.6-8.7 0-.6-.1-1.1-.2-1.5H12z" />
+            </svg>
+            {authGoogleLoading ? "Redirecting to Google..." : "Continue with Google"}
+          </button>
+
+          <div className="mt-4 flex items-center gap-3">
+            <div className={`h-px flex-1 ${isDark ? "bg-amber-950/40" : "bg-slate-200"}`} />
+            <span className={`text-xs ${isDark ? "text-stone-400" : "text-slate-500"}`}>or use email</span>
+            <div className={`h-px flex-1 ${isDark ? "bg-amber-950/40" : "bg-slate-200"}`} />
+          </div>
 
           <div className={`mt-4 inline-flex rounded-full border p-0.5 ${isDark ? "border-amber-950/40 bg-[#2d241b]" : "border-slate-200 bg-slate-50"}`}>
             {[
@@ -935,6 +995,9 @@ export default function Home() {
           >
             {authLoading ? "Please wait..." : authMode === "signup" ? "Create account" : "Sign in"}
           </button>
+          <p className={`mt-3 text-center text-xs ${isDark ? "text-stone-400" : "text-slate-500"}`}>
+            By continuing, you agree to use this service for legitimate welfare discovery.
+          </p>
         </div>
       </main>
     );
