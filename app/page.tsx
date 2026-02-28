@@ -90,6 +90,7 @@ const starterChipsByLanguage = {
 const profileTemplate =
   "State: \nAge: \nCategory: \nOccupation: \nFamily income: \nNeed:";
 const authStorageKey = "yojana-auth-session";
+const authPendingStorageKey = "yojana-auth-pending-message";
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
 const authEnabled = Boolean(supabaseUrl && supabaseAnonKey);
@@ -416,6 +417,8 @@ export default function Home() {
   const [authEmail, setAuthEmail] = useState("");
   const [authPassword, setAuthPassword] = useState("");
   const [session, setSession] = useState<AuthSession | null>(null);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [pendingMessage, setPendingMessage] = useState<string | null>(null);
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -515,6 +518,9 @@ export default function Home() {
       return;
     }
     const bootstrapAuth = async () => {
+      const savedPending = localStorage.getItem(authPendingStorageKey);
+      if (savedPending) setPendingMessage(savedPending);
+
       const hash = window.location.hash.startsWith("#") ? window.location.hash.slice(1) : "";
       if (hash) {
         const params = new URLSearchParams(hash);
@@ -523,6 +529,7 @@ export default function Home() {
         const errorDescription = params.get("error_description") || params.get("error");
         if (errorDescription) {
           setAuthError(decodeURIComponent(errorDescription));
+          setShowAuthModal(true);
           window.history.replaceState({}, document.title, window.location.pathname + window.location.search);
           setAuthReady(true);
           return;
@@ -531,6 +538,7 @@ export default function Home() {
           try {
             const user = await fetchSupabaseUser(accessToken);
             persistSession({ accessToken, refreshToken, user });
+            setShowAuthModal(false);
             window.history.replaceState({}, document.title, window.location.pathname + window.location.search);
             setAuthReady(true);
             return;
@@ -564,6 +572,16 @@ export default function Home() {
     void bootstrapAuth();
   }, [fetchSupabaseUser, refreshSupabaseSession]);
 
+  useEffect(() => {
+    if (!session || !pendingMessage || loading) return;
+    const queued = pendingMessage.trim();
+    if (!queued) return;
+    setPendingMessage(null);
+    localStorage.removeItem(authPendingStorageKey);
+    setShowAuthModal(false);
+    void submitQuestion(queued);
+  }, [session, pendingMessage, loading, submitQuestion]);
+
   const startGoogleAuth = () => {
     if (!authEnabled) {
       setAuthError("Missing Supabase env vars in yojana-web.");
@@ -572,6 +590,8 @@ export default function Home() {
     setAuthError(null);
     setAuthNotice(null);
     setAuthGoogleLoading(true);
+    const queued = (pendingMessage || input).trim();
+    if (queued) localStorage.setItem(authPendingStorageKey, queued);
     const redirectTo = window.location.origin;
     const url = `${supabaseUrl}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(redirectTo)}`;
     window.location.assign(url);
@@ -693,11 +713,11 @@ export default function Home() {
     }, 18);
   }, [messages]);
 
-  const makeMessageId = () => {
+  const makeMessageId = useCallback(() => {
     const id = `m-${nextMessageId.current}`;
     nextMessageId.current += 1;
     return id;
-  };
+  }, []);
 
   const jumpToMessage = (id: string) => {
     const scroller = chatScrollRef.current;
@@ -737,7 +757,7 @@ export default function Home() {
     window.setTimeout(() => setSharedMessageId(null), 1400);
   };
 
-  const submitQuestion = async (question: string, visibleUser?: string) => {
+  const submitQuestion = useCallback(async (question: string, visibleUser?: string) => {
     if (!question || loading) return;
 
     const userMessage: Message = { id: makeMessageId(), role: "user", content: visibleUser || question };
@@ -779,11 +799,19 @@ export default function Home() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [language, loading, makeMessageId, session?.accessToken]);
 
   const sendMessage = async () => {
     const q = input.trim();
     if (!q) return;
+    if (authEnabled && !session) {
+      setPendingMessage(q);
+      localStorage.setItem(authPendingStorageKey, q);
+      setAuthError(null);
+      setAuthNotice("Sign in once to send your message.");
+      setShowAuthModal(true);
+      return;
+    }
     await submitQuestion(q);
   };
 
@@ -912,97 +940,6 @@ export default function Home() {
     );
   }
 
-  if (authEnabled && !session) {
-    return (
-      <main className={`relative flex h-screen items-center justify-center px-4 ${isDark ? "bg-[#18130f] text-stone-100" : "bg-[#faf8f4] text-slate-900"}`}>
-        <CornerMotif isDark={isDark} className="pointer-events-none absolute left-2 top-2 h-20 w-20 md:h-24 md:w-24" />
-        <CornerMotif isDark={isDark} className="pointer-events-none absolute bottom-4 right-4 h-16 w-16 md:h-24 md:w-24" />
-        <div className={`w-full max-w-md rounded-3xl border p-6 shadow-[0_16px_40px_rgba(15,23,42,0.08)] ${isDark ? "border-amber-950/40 bg-[#231b14]" : "border-slate-200 bg-white"}`}>
-          <p className={`text-xs uppercase tracking-[0.2em] ${isDark ? "text-stone-400" : "text-slate-500"}`}>Yojana AI</p>
-          <h1 className="mt-2 text-2xl font-semibold">Welcome back</h1>
-          <p className={`mt-2 text-sm ${isDark ? "text-stone-300" : "text-slate-600"}`}>
-            Sign in to continue your scheme search journey.
-          </p>
-
-          <button
-            onClick={startGoogleAuth}
-            disabled={authGoogleLoading}
-            className={`mt-5 inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl border text-sm font-medium transition-all ${
-              isDark
-                ? "border-amber-900/50 bg-[#2d241b] text-stone-100 hover:bg-[#3a2d21]"
-                : "border-slate-200 bg-white text-slate-800 hover:bg-slate-50"
-            } disabled:opacity-70`}
-          >
-            <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden="true">
-              <path fill="#EA4335" d="M12 10.2v3.9h5.4c-.2 1.3-1.5 3.9-5.4 3.9-3.2 0-5.9-2.6-5.9-5.9s2.7-5.9 5.9-5.9c1.8 0 3 .8 3.7 1.4l2.5-2.4C16.7 3.8 14.6 3 12 3 7 3 3 7 3 12s4 9 9 9c5.2 0 8.6-3.6 8.6-8.7 0-.6-.1-1.1-.2-1.5H12z" />
-            </svg>
-            {authGoogleLoading ? "Redirecting to Google..." : "Continue with Google"}
-          </button>
-
-          <div className="mt-4 flex items-center gap-3">
-            <div className={`h-px flex-1 ${isDark ? "bg-amber-950/40" : "bg-slate-200"}`} />
-            <span className={`text-xs ${isDark ? "text-stone-400" : "text-slate-500"}`}>or use email</span>
-            <div className={`h-px flex-1 ${isDark ? "bg-amber-950/40" : "bg-slate-200"}`} />
-          </div>
-
-          <div className={`mt-4 inline-flex rounded-full border p-0.5 ${isDark ? "border-amber-950/40 bg-[#2d241b]" : "border-slate-200 bg-slate-50"}`}>
-            {[
-              { key: "signup", label: "Sign up" },
-              { key: "signin", label: "Sign in" },
-            ].map((opt) => (
-              <button
-                key={opt.key}
-                onClick={() => {
-                  setAuthMode(opt.key as "signup" | "signin");
-                  setAuthError(null);
-                  setAuthNotice(null);
-                }}
-                className={`rounded-full px-3 py-1.5 text-sm ${
-                  authMode === opt.key
-                    ? isDark ? "bg-[#3a2d21] text-stone-100" : "bg-white text-slate-900 shadow-sm"
-                    : isDark ? "text-stone-300" : "text-slate-600"
-                }`}
-              >
-                {opt.label}
-              </button>
-            ))}
-          </div>
-
-          <div className="mt-4 space-y-3">
-            <input
-              type="email"
-              value={authEmail}
-              onChange={(e) => setAuthEmail(e.target.value)}
-              placeholder="Email"
-              className={`w-full rounded-xl border px-3 py-2.5 text-sm outline-none ${isDark ? "border-amber-950/40 bg-[#2d241b] text-stone-100 placeholder:text-stone-500" : "border-slate-200 bg-white text-slate-900 placeholder:text-slate-400"}`}
-            />
-            <input
-              type="password"
-              value={authPassword}
-              onChange={(e) => setAuthPassword(e.target.value)}
-              placeholder="Password"
-              className={`w-full rounded-xl border px-3 py-2.5 text-sm outline-none ${isDark ? "border-amber-950/40 bg-[#2d241b] text-stone-100 placeholder:text-stone-500" : "border-slate-200 bg-white text-slate-900 placeholder:text-slate-400"}`}
-            />
-          </div>
-
-          {authError && <p className="mt-3 text-sm text-rose-500">{authError}</p>}
-          {authNotice && <p className={`mt-3 text-sm ${isDark ? "text-emerald-300" : "text-emerald-700"}`}>{authNotice}</p>}
-
-          <button
-            onClick={() => void submitAuth()}
-            disabled={authLoading}
-            className="mt-5 inline-flex h-11 w-full items-center justify-center rounded-xl bg-gradient-to-br from-orange-500 to-amber-500 text-sm font-medium text-white disabled:opacity-70"
-          >
-            {authLoading ? "Please wait..." : authMode === "signup" ? "Create account" : "Sign in"}
-          </button>
-          <p className={`mt-3 text-center text-xs ${isDark ? "text-stone-400" : "text-slate-500"}`}>
-            By continuing, you agree to use this service for legitimate welfare discovery.
-          </p>
-        </div>
-      </main>
-    );
-  }
-
   return (
     <main className={`relative h-screen overflow-hidden ${isDark ? "bg-[#18130f] text-stone-100" : "bg-[#faf8f4] text-slate-900"}`}>
       <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-orange-500 via-white to-emerald-500" />
@@ -1088,12 +1025,25 @@ export default function Home() {
                 {isDark ? <SunIcon className="h-4 w-4" /> : <MoonIcon className="h-4 w-4" />}
                 <span>{isDark ? "Light" : "Dark"}</span>
               </button>
-              {authEnabled && (
+              {authEnabled && session && (
                 <button
                   onClick={handleSignOut}
                   className={`rounded-full border px-2.5 py-1.5 text-xs md:px-3 md:text-sm ${isDark ? "border-amber-950/40 bg-[#231b14] text-stone-300" : "border-slate-300 bg-white text-slate-700"}`}
                 >
                   Sign out
+                </button>
+              )}
+              {authEnabled && !session && (
+                <button
+                  onClick={() => {
+                    setAuthMode("signin");
+                    setAuthError(null);
+                    setAuthNotice(null);
+                    setShowAuthModal(true);
+                  }}
+                  className={`rounded-full border px-2.5 py-1.5 text-xs md:px-3 md:text-sm ${isDark ? "border-amber-950/40 bg-[#231b14] text-stone-300" : "border-slate-300 bg-white text-slate-700"}`}
+                >
+                  Sign in
                 </button>
               )}
             </div>
@@ -1415,6 +1365,98 @@ export default function Home() {
               </table>
             </div>
           )}
+        </div>
+      )}
+
+      {authEnabled && showAuthModal && !session && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center px-4">
+          <button
+            onClick={() => {
+              if (authLoading || authGoogleLoading) return;
+              setShowAuthModal(false);
+            }}
+            className="absolute inset-0 bg-black/45"
+            aria-label="Close sign in"
+          />
+          <div className={`relative w-full max-w-md rounded-3xl border p-6 shadow-[0_16px_40px_rgba(15,23,42,0.16)] ${isDark ? "border-amber-950/40 bg-[#231b14]" : "border-slate-200 bg-white"}`}>
+            <p className={`text-xs uppercase tracking-[0.2em] ${isDark ? "text-stone-400" : "text-slate-500"}`}>Yojana AI</p>
+            <h2 className="mt-2 text-2xl font-semibold">Sign in to continue</h2>
+            <p className={`mt-2 text-sm ${isDark ? "text-stone-300" : "text-slate-600"}`}>
+              {pendingMessage ? "Complete login and your message will be sent automatically." : "Continue to use the scheme assistant."}
+            </p>
+
+            <button
+              onClick={startGoogleAuth}
+              disabled={authGoogleLoading}
+              className={`mt-5 inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl border text-sm font-medium transition-all ${
+                isDark
+                  ? "border-amber-900/50 bg-[#2d241b] text-stone-100 hover:bg-[#3a2d21]"
+                  : "border-slate-200 bg-white text-slate-800 hover:bg-slate-50"
+              } disabled:opacity-70`}
+            >
+              <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden="true">
+                <path fill="#EA4335" d="M12 10.2v3.9h5.4c-.2 1.3-1.5 3.9-5.4 3.9-3.2 0-5.9-2.6-5.9-5.9s2.7-5.9 5.9-5.9c1.8 0 3 .8 3.7 1.4l2.5-2.4C16.7 3.8 14.6 3 12 3 7 3 3 7 3 12s4 9 9 9c5.2 0 8.6-3.6 8.6-8.7 0-.6-.1-1.1-.2-1.5H12z" />
+              </svg>
+              {authGoogleLoading ? "Redirecting to Google..." : "Continue with Google"}
+            </button>
+
+            <div className="mt-4 flex items-center gap-3">
+              <div className={`h-px flex-1 ${isDark ? "bg-amber-950/40" : "bg-slate-200"}`} />
+              <span className={`text-xs ${isDark ? "text-stone-400" : "text-slate-500"}`}>or use email</span>
+              <div className={`h-px flex-1 ${isDark ? "bg-amber-950/40" : "bg-slate-200"}`} />
+            </div>
+
+            <div className={`mt-4 inline-flex rounded-full border p-0.5 ${isDark ? "border-amber-950/40 bg-[#2d241b]" : "border-slate-200 bg-slate-50"}`}>
+              {[
+                { key: "signup", label: "Sign up" },
+                { key: "signin", label: "Sign in" },
+              ].map((opt) => (
+                <button
+                  key={opt.key}
+                  onClick={() => {
+                    setAuthMode(opt.key as "signup" | "signin");
+                    setAuthError(null);
+                    setAuthNotice(null);
+                  }}
+                  className={`rounded-full px-3 py-1.5 text-sm ${
+                    authMode === opt.key
+                      ? isDark ? "bg-[#3a2d21] text-stone-100" : "bg-white text-slate-900 shadow-sm"
+                      : isDark ? "text-stone-300" : "text-slate-600"
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+
+            <div className="mt-4 space-y-3">
+              <input
+                type="email"
+                value={authEmail}
+                onChange={(e) => setAuthEmail(e.target.value)}
+                placeholder="Email"
+                className={`w-full rounded-xl border px-3 py-2.5 text-sm outline-none ${isDark ? "border-amber-950/40 bg-[#2d241b] text-stone-100 placeholder:text-stone-500" : "border-slate-200 bg-white text-slate-900 placeholder:text-slate-400"}`}
+              />
+              <input
+                type="password"
+                value={authPassword}
+                onChange={(e) => setAuthPassword(e.target.value)}
+                placeholder="Password"
+                className={`w-full rounded-xl border px-3 py-2.5 text-sm outline-none ${isDark ? "border-amber-950/40 bg-[#2d241b] text-stone-100 placeholder:text-stone-500" : "border-slate-200 bg-white text-slate-900 placeholder:text-slate-400"}`}
+              />
+            </div>
+
+            {authError && <p className="mt-3 text-sm text-rose-500">{authError}</p>}
+            {authNotice && <p className={`mt-3 text-sm ${isDark ? "text-emerald-300" : "text-emerald-700"}`}>{authNotice}</p>}
+
+            <button
+              onClick={() => void submitAuth()}
+              disabled={authLoading}
+              className="mt-5 inline-flex h-11 w-full items-center justify-center rounded-xl bg-gradient-to-br from-orange-500 to-amber-500 text-sm font-medium text-white disabled:opacity-70"
+            >
+              {authLoading ? "Please wait..." : authMode === "signup" ? "Create account" : "Sign in"}
+            </button>
+          </div>
         </div>
       )}
     </main>
