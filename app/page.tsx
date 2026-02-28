@@ -572,16 +572,6 @@ export default function Home() {
     void bootstrapAuth();
   }, [fetchSupabaseUser, refreshSupabaseSession]);
 
-  useEffect(() => {
-    if (!session || !pendingMessage || loading) return;
-    const queued = pendingMessage.trim();
-    if (!queued) return;
-    setPendingMessage(null);
-    localStorage.removeItem(authPendingStorageKey);
-    setShowAuthModal(false);
-    void submitQuestion(queued);
-  }, [session, pendingMessage, loading, submitQuestion]);
-
   const startGoogleAuth = () => {
     if (!authEnabled) {
       setAuthError("Missing Supabase env vars in yojana-web.");
@@ -800,6 +790,16 @@ export default function Home() {
       setLoading(false);
     }
   }, [language, loading, makeMessageId, session?.accessToken]);
+
+  useEffect(() => {
+    if (!session || !pendingMessage || loading) return;
+    const queued = pendingMessage.trim();
+    if (!queued) return;
+    setPendingMessage(null);
+    localStorage.removeItem(authPendingStorageKey);
+    setShowAuthModal(false);
+    void submitQuestion(queued);
+  }, [session, pendingMessage, loading, submitQuestion]);
 
   const sendMessage = async () => {
     const q = input.trim();
