@@ -857,7 +857,7 @@ export default function Home() {
         <div className="mt-3 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 overflow-x-auto pb-1 pr-1">
             <div
-              className={`inline-flex items-center rounded-full border p-0.5 ${
+              className={`inline-flex h-10 items-center rounded-full border p-0.5 ${
                 isDark ? "border-amber-950/40 bg-[#231b14]" : "border-slate-200 bg-white"
               }`}
               aria-label="Response language"
@@ -870,7 +870,7 @@ export default function Home() {
                 <button
                   key={lang.value}
                   onClick={() => setLanguage(lang.value)}
-                  className={`rounded-full px-2.5 py-1 text-xs transition-colors duration-200 ${
+                  className={`inline-flex h-full items-center rounded-full px-3 text-xs transition-colors duration-200 ${
                     language === lang.value
                       ? isDark
                         ? "bg-[#3a2d21] text-stone-100"
@@ -886,12 +886,12 @@ export default function Home() {
             </div>
             <button
               onClick={applyTemplate}
-              className={`inline-flex h-9 items-center gap-1 rounded-full border px-3 text-xs transition-all duration-200 ${
+              className={`inline-flex h-10 items-center gap-1 rounded-full border px-3 text-xs transition-all duration-200 ${
                 isDark ? "border-amber-950/40 text-stone-300 hover:border-amber-800/60 hover:bg-[#2d241b]" : "border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50"
               }`}
             >
               <PlusIcon className="h-3.5 w-3.5" />
-              Add profile template
+              Add profile
             </button>
           </div>
           <button
@@ -931,7 +931,7 @@ export default function Home() {
               <JanInfraBadge className="h-8 w-8" style={{ color: brandColor }} />
               <button
                 onClick={resetConversation}
-                className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs md:px-3.5 md:text-sm ${isDark ? "border-amber-950/40 bg-[#231b14] text-stone-200 hover:bg-[#2d241b]" : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50"}`}
+                className={`inline-flex h-10 items-center gap-1.5 rounded-full border px-3 text-xs md:px-3.5 md:text-sm ${isDark ? "border-amber-950/40 bg-[#231b14] text-stone-200 hover:bg-[#2d241b]" : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50"}`}
               >
                 <PlusIcon className="h-3.5 w-3.5" />
                 New search
@@ -940,25 +940,29 @@ export default function Home() {
             <div className="ml-auto flex items-center gap-2">
               <button
                 onClick={() => setTheme((p) => (p === "dark" ? "light" : "dark"))}
-                className={`inline-flex h-9 items-center gap-1.5 rounded-full border px-3 text-xs md:text-sm ${isDark ? "border-amber-950/40 bg-[#231b14] text-stone-200 hover:bg-[#2d241b]" : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50"}`}
+                className={`inline-flex h-10 items-center gap-1.5 rounded-full border px-3 text-xs md:text-sm ${isDark ? "border-amber-950/40 bg-[#231b14] text-stone-200 hover:bg-[#2d241b]" : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50"}`}
               >
                 {isDark ? <SunIcon className="h-4 w-4" /> : <MoonIcon className="h-4 w-4" />}
                 {isDark ? "Light" : "Dark"}
               </button>
-              {session && userLabel && (
-                <div className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs ${isDark ? "border-amber-950/40 bg-[#231b14] text-stone-200" : "border-slate-300 bg-white text-slate-700"}`}>
-                  <UserIcon className="h-3.5 w-3.5" />
-                  <span className="hidden max-w-[120px] truncate md:inline">{userLabel}</span>
-                </div>
-              )}
               <div className="relative">
-                <button
-                  onClick={() => setShowSettingsMenu((p) => !p)}
-                  className={`inline-flex h-9 w-9 items-center justify-center rounded-full border ${isDark ? "border-amber-950/40 bg-[#231b14] text-stone-300" : "border-slate-300 bg-white text-slate-700"}`}
-                  aria-label="Open settings"
-                >
-                  <GearIcon className="h-4 w-4" />
-                </button>
+                <div className={`inline-flex h-10 items-center overflow-hidden rounded-full border ${isDark ? "border-amber-950/40 bg-[#231b14] text-stone-300" : "border-slate-300 bg-white text-slate-700"}`}>
+                  <button
+                    onClick={() => setShowSettingsMenu((p) => !p)}
+                    className={`inline-flex h-full items-center gap-1.5 px-3 text-xs md:text-sm ${isDark ? "hover:bg-[#2d241b]" : "hover:bg-slate-50"}`}
+                    aria-label="Open account menu"
+                  >
+                    <UserIcon className="h-4 w-4" />
+                    <span className="max-w-[110px] truncate">{session && userLabel ? userLabel : "Account"}</span>
+                  </button>
+                  <button
+                    onClick={() => setShowSettingsMenu((p) => !p)}
+                    className={`inline-flex h-full w-10 items-center justify-center border-l ${isDark ? "border-amber-950/40 hover:bg-[#2d241b]" : "border-slate-300 hover:bg-slate-50"}`}
+                    aria-label="Open settings"
+                  >
+                    <GearIcon className="h-4 w-4" />
+                  </button>
+                </div>
                 {showSettingsMenu && (
                   <div className={`absolute right-0 mt-2 w-56 rounded-2xl border p-2 shadow-xl ${isDark ? "border-amber-950/40 bg-[#231b14]" : "border-slate-200 bg-white"}`}>
                     <button
