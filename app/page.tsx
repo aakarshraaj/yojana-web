@@ -403,13 +403,9 @@ function FlowerSpinner({ className }: { className?: string }) {
 
 export default function Home() {
   const [authReady, setAuthReady] = useState(false);
-  const [authMode, setAuthMode] = useState<"signin" | "signup">("signup");
-  const [authLoading, setAuthLoading] = useState(false);
   const [authGoogleLoading, setAuthGoogleLoading] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const [authNotice, setAuthNotice] = useState<string | null>(null);
-  const [authEmail, setAuthEmail] = useState("");
-  const [authPassword, setAuthPassword] = useState("");
   const [session, setSession] = useState<AuthSession | null>(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [pendingMessage, setPendingMessage] = useState<string | null>(null);
@@ -577,62 +573,6 @@ export default function Home() {
     persistSession(null);
     setMessages([]);
     setShortlist([]);
-  };
-
-  const submitAuth = async () => {
-    if (!authEmail.trim() || !authPassword.trim()) {
-      setAuthError("Email and password are required.");
-      return;
-    }
-    if (!authEnabled) {
-      setAuthError("Missing Supabase env vars in yojana-web.");
-      return;
-    }
-    setAuthLoading(true);
-    setAuthError(null);
-    setAuthNotice(null);
-    try {
-      if (authMode === "signup") {
-        const res = await fetch(`${supabaseUrl}/auth/v1/signup`, {
-          method: "POST",
-          headers: supabaseHeaders,
-          body: JSON.stringify({ email: authEmail.trim(), password: authPassword }),
-        });
-        const data = (await res.json()) as {
-          access_token?: string;
-          refresh_token?: string;
-          error_description?: string;
-        };
-        if (!res.ok) throw new Error(data.error_description || "Unable to create account.");
-        if (data.access_token && data.refresh_token) {
-          const user = await fetchSupabaseUser(data.access_token);
-          persistSession({ accessToken: data.access_token, refreshToken: data.refresh_token, user });
-        } else {
-          setAuthNotice("Account created. Please verify your email, then sign in.");
-          setAuthMode("signin");
-        }
-      } else {
-        const res = await fetch(`${supabaseUrl}/auth/v1/token?grant_type=password`, {
-          method: "POST",
-          headers: supabaseHeaders,
-          body: JSON.stringify({ email: authEmail.trim(), password: authPassword }),
-        });
-        const data = (await res.json()) as {
-          access_token?: string;
-          refresh_token?: string;
-          error_description?: string;
-        };
-        if (!res.ok || !data.access_token || !data.refresh_token) {
-          throw new Error(data.error_description || "Invalid login credentials.");
-        }
-        const user = await fetchSupabaseUser(data.access_token);
-        persistSession({ accessToken: data.access_token, refreshToken: data.refresh_token, user });
-      }
-    } catch (err: unknown) {
-      setAuthError(err instanceof Error ? err.message : "Authentication failed.");
-    } finally {
-      setAuthLoading(false);
-    }
   };
 
   useEffect(() => {
@@ -946,23 +886,15 @@ export default function Home() {
                 {isDark ? "Light" : "Dark"}
               </button>
               <div className="relative">
-                <div className={`inline-flex h-10 items-center overflow-hidden rounded-full border ${isDark ? "border-amber-950/40 bg-[#231b14] text-stone-300" : "border-slate-300 bg-white text-slate-700"}`}>
-                  <button
-                    onClick={() => setShowSettingsMenu((p) => !p)}
-                    className={`inline-flex h-full items-center gap-1.5 px-3 text-xs md:text-sm ${isDark ? "hover:bg-[#2d241b]" : "hover:bg-slate-50"}`}
-                    aria-label="Open account menu"
-                  >
-                    <UserIcon className="h-4 w-4" />
-                    <span className="max-w-[110px] truncate">{session && userLabel ? userLabel : "Account"}</span>
-                  </button>
-                  <button
-                    onClick={() => setShowSettingsMenu((p) => !p)}
-                    className={`inline-flex h-full w-10 items-center justify-center border-l ${isDark ? "border-amber-950/40 hover:bg-[#2d241b]" : "border-slate-300 hover:bg-slate-50"}`}
-                    aria-label="Open settings"
-                  >
-                    <GearIcon className="h-4 w-4" />
-                  </button>
-                </div>
+                <button
+                  onClick={() => setShowSettingsMenu((p) => !p)}
+                  className={`inline-flex h-10 items-center gap-2 rounded-full border px-3 text-xs md:text-sm ${isDark ? "border-amber-950/40 bg-[#231b14] text-stone-300 hover:bg-[#2d241b]" : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50"}`}
+                  aria-label="Open account menu"
+                >
+                  <UserIcon className="h-4 w-4" />
+                  <span className="max-w-[110px] truncate">{session && userLabel ? userLabel : "Account"}</span>
+                  <GearIcon className="h-4 w-4" />
+                </button>
                 {showSettingsMenu && (
                   <div className={`absolute right-0 mt-2 w-56 rounded-2xl border p-2 shadow-xl ${isDark ? "border-amber-950/40 bg-[#231b14]" : "border-slate-200 bg-white"}`}>
                     <button
@@ -1029,7 +961,6 @@ export default function Home() {
                     {authEnabled && !session && (
                       <button
                         onClick={() => {
-                          setAuthMode("signin");
                           setAuthError(null);
                           setAuthNotice(null);
                           setShowAuthModal(true);
@@ -1328,7 +1259,7 @@ export default function Home() {
         <div className="absolute inset-0 z-50 flex items-center justify-center px-4">
           <button
             onClick={() => {
-              if (authLoading || authGoogleLoading) return;
+              if (authGoogleLoading) return;
               setShowAuthModal(false);
             }}
             className="absolute inset-0 bg-black/35 backdrop-blur-[5px]"
@@ -1357,62 +1288,8 @@ export default function Home() {
               {authGoogleLoading ? "Redirecting to Google..." : "Continue with Google"}
             </button>
 
-            <div className="mt-4 flex items-center gap-3">
-              <div className={`h-px flex-1 ${isDark ? "bg-amber-950/40" : "bg-slate-200"}`} />
-              <span className={`text-xs ${isDark ? "text-stone-400" : "text-slate-500"}`}>or use email</span>
-              <div className={`h-px flex-1 ${isDark ? "bg-amber-950/40" : "bg-slate-200"}`} />
-            </div>
-
-            <div className={`mt-4 inline-flex rounded-full border p-0.5 ${isDark ? "border-amber-950/40 bg-[#2d241b]" : "border-slate-200 bg-slate-50"}`}>
-              {[
-                { key: "signup", label: "Sign up" },
-                { key: "signin", label: "Sign in" },
-              ].map((opt) => (
-                <button
-                  key={opt.key}
-                  onClick={() => {
-                    setAuthMode(opt.key as "signup" | "signin");
-                    setAuthError(null);
-                    setAuthNotice(null);
-                  }}
-                  className={`rounded-full px-3 py-1.5 text-sm ${
-                    authMode === opt.key
-                      ? isDark ? "bg-[#3a2d21] text-stone-100" : "bg-white text-slate-900 shadow-sm"
-                      : isDark ? "text-stone-300" : "text-slate-600"
-                  }`}
-                >
-                  {opt.label}
-                </button>
-              ))}
-            </div>
-
-            <div className="mt-4 space-y-3">
-              <input
-                type="email"
-                value={authEmail}
-                onChange={(e) => setAuthEmail(e.target.value)}
-                placeholder="Email"
-                className={`w-full rounded-xl border px-3 py-2.5 text-sm outline-none ${isDark ? "border-amber-950/40 bg-[#2d241b] text-stone-100 placeholder:text-stone-500" : "border-slate-200 bg-white text-slate-900 placeholder:text-slate-400"}`}
-              />
-              <input
-                type="password"
-                value={authPassword}
-                onChange={(e) => setAuthPassword(e.target.value)}
-                placeholder="Password"
-                className={`w-full rounded-xl border px-3 py-2.5 text-sm outline-none ${isDark ? "border-amber-950/40 bg-[#2d241b] text-stone-100 placeholder:text-stone-500" : "border-slate-200 bg-white text-slate-900 placeholder:text-slate-400"}`}
-              />
-            </div>
-
             {authError && <p className="mt-3 text-sm text-rose-500">{authError}</p>}
             {authNotice && <p className={`mt-3 text-sm ${isDark ? "text-emerald-300" : "text-emerald-700"}`}>{authNotice}</p>}
-
-            <button
-              onClick={() => void submitAuth()}
-              disabled={authLoading}
-              className="mt-5 inline-flex h-11 w-full items-center justify-center rounded-xl bg-gradient-to-br from-orange-500 to-amber-500 text-sm font-medium text-white disabled:opacity-70"
-            >
-              {authLoading ? "Please wait..." : authMode === "signup" ? "Create account" : "Sign in"}
-            </button>
           </div>
         </div>
       )}
