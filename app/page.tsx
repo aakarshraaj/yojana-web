@@ -425,6 +425,7 @@ export default function Home() {
   const [typingMessageId, setTypingMessageId] = useState<string | null>(null);
 
   const nextMessageId = useRef(1);
+  const googleRedirectTimeoutRef = useRef<number | null>(null);
   const chatScrollRef = useRef<HTMLDivElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const typingTimerRef = useRef<number | null>(null);
@@ -562,11 +563,18 @@ export default function Home() {
     setAuthError(null);
     setAuthNotice(null);
     setAuthGoogleLoading(true);
+    if (googleRedirectTimeoutRef.current) {
+      window.clearTimeout(googleRedirectTimeoutRef.current);
+    }
     const queued = (pendingMessage || input).trim();
     if (queued) localStorage.setItem(authPendingStorageKey, queued);
     const redirectTo = window.location.origin;
     const url = `${supabaseUrl}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(redirectTo)}`;
-    window.location.assign(url);
+    googleRedirectTimeoutRef.current = window.setTimeout(() => {
+      setAuthGoogleLoading(false);
+      setAuthError("Could not open Google sign-in. Please tap Continue with Google again.");
+    }, 4000);
+    window.location.href = url;
   };
 
   const handleSignOut = () => {
@@ -600,6 +608,7 @@ export default function Home() {
   useEffect(() => {
     return () => {
       if (typingTimerRef.current) window.clearInterval(typingTimerRef.current);
+      if (googleRedirectTimeoutRef.current) window.clearTimeout(googleRedirectTimeoutRef.current);
     };
   }, []);
 
@@ -866,7 +875,7 @@ export default function Home() {
       />
       <div className="flex h-full">
         <section className="flex min-w-0 flex-1 flex-col">
-          <header className={`flex h-[64px] items-center justify-between px-3 md:px-8 ${isDark ? "border-b border-amber-950/50 bg-[#18130f]/85" : "border-b border-slate-200 bg-white/60"}`}>
+          <header className={`relative z-30 flex h-[64px] items-center justify-between px-3 md:px-8 ${isDark ? "border-b border-amber-950/50 bg-[#18130f]/85" : "border-b border-slate-200 bg-white/60"}`}>
             <div className="flex items-center gap-2">
               <JanInfraBadge className="h-8 w-8" style={{ color: brandColor }} />
               <button
@@ -896,7 +905,13 @@ export default function Home() {
                   <GearIcon className="h-4 w-4" />
                 </button>
                 {showSettingsMenu && (
-                  <div className={`absolute right-0 mt-2 w-56 rounded-2xl border p-2 shadow-xl ${isDark ? "border-amber-950/40 bg-[#231b14]" : "border-slate-200 bg-white"}`}>
+                  <>
+                    <button
+                      onClick={() => setShowSettingsMenu(false)}
+                      className="fixed inset-0 z-40 md:hidden"
+                      aria-label="Close account menu"
+                    />
+                    <div className={`fixed left-3 right-3 top-[76px] z-50 rounded-2xl border p-2 shadow-xl md:absolute md:left-auto md:right-0 md:top-full md:mt-2 md:w-56 ${isDark ? "border-amber-950/40 bg-[#231b14]" : "border-slate-200 bg-white"}`}>
                     <button
                       onClick={() => {
                         resetConversation();
@@ -971,7 +986,8 @@ export default function Home() {
                         Sign in
                       </button>
                     )}
-                  </div>
+                    </div>
+                  </>
                 )}
               </div>
             </div>
