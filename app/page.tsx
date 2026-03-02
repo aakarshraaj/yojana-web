@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import Image from "next/image";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
@@ -32,6 +33,7 @@ type ChatResponse = {
 type AuthUser = {
   id: string;
   email?: string;
+  displayName?: string;
 };
 
 type AuthSession = {
@@ -136,7 +138,6 @@ const markdownComponents = (isDark: boolean) => ({
   ),
 });
 
-const shortLabel = (text: string) => (text.length <= 46 ? text : `${text.slice(0, 43)}...`);
 const cap = (v: string) => `${v.charAt(0).toUpperCase()}${v.slice(1)}`;
 
 const extractHostname = (url: string) => {
@@ -324,42 +325,26 @@ function GearIcon({ className }: { className?: string }) {
   );
 }
 
-function CornerMotif({
-  className,
-  isDark,
-}: {
-  className?: string;
-  isDark: boolean;
-}) {
+function UserIcon({ className }: { className?: string }) {
   return (
-    <svg
-      viewBox="0 0 120 120"
-      className={className}
-      fill="none"
-      aria-hidden="true"
-    >
-      <g
-        stroke={isDark ? "#a78b6a" : "#b08b57"}
-        strokeWidth="1.15"
-        strokeLinecap="round"
-        opacity={isDark ? 0.14 : 0.18}
-      >
-        <circle cx="60" cy="60" r="40" />
-        <circle cx="60" cy="60" r="28" />
-        <path d="M60 12v20M60 88v20M12 60h20M88 60h20" />
-        <path d="M30 30l14 14M76 76l14 14M90 30L76 44M44 76L30 90" />
-        <path d="M60 24c8 9 8 23 0 32c-8-9-8-23 0-32Z" />
-        <path d="M60 96c-8-9-8-23 0-32c8 9 8 23 0 32Z" />
-        <path d="M24 60c9-8 23-8 32 0c-9 8-23 8-32 0Z" />
-        <path d="M96 60c-9 8-23 8-32 0c9-8 23-8 32 0Z" />
-      </g>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={className}>
+      <circle cx="12" cy="8" r="3.2" />
+      <path d="M5.5 19.5c1.9-3.4 4.1-4.8 6.5-4.8s4.6 1.4 6.5 4.8" />
     </svg>
   );
 }
 
-function FlowerSpinner({ className, isDark }: { className?: string; isDark: boolean }) {
-  const stroke = isDark ? "#e7d4bb" : "#8b5e34";
-  const soft = isDark ? "#c8a57f" : "#b07a42";
+function JanInfraBadge({ className, style }: { className?: string; style?: React.CSSProperties }) {
+  return (
+    <svg viewBox="0 0 237 231" fill="none" xmlns="http://www.w3.org/2000/svg" className={className} style={style} aria-label="JanInfra badge">
+      <path d="M28.2674 38.5563C50.3524 11.6561 87.2779 -5.59704 144.542 3.4072L144.818 3.45058L145.09 3.51088C173.757 9.85931 231.137 41.5445 235.981 117.543C236.299 122.522 232.525 126.817 227.552 127.135C222.579 127.453 218.29 123.674 217.973 118.694C213.81 53.3864 165.023 26.5513 141.457 21.2141C89.7218 13.1542 59.6201 28.8217 42.2067 50.0317C24.343 71.7903 18.6293 100.86 19.0686 121.233C24.6694 167.004 46.2432 190.387 70.1066 201.879C94.3303 213.545 122.035 213.458 140.387 209.607C150.235 205.302 153.169 200.78 153.974 197.667C154.879 194.17 153.964 189.25 149.922 182.786C141.811 169.817 124.782 156.626 112.155 149.781C91.6891 138.686 80.9025 126.684 80.5419 113.624C80.1807 100.533 90.3668 92.2017 97.2744 88.6315L97.5416 88.4933L97.817 88.3734C115.395 80.7246 131.735 79.9667 146.37 84.3088C160.835 88.601 172.911 97.6546 182.606 108.455C201.821 129.857 213.078 159.647 215.985 180.09C216.688 185.03 213.258 189.605 208.325 190.308C203.391 191.012 198.823 187.577 198.12 182.637C195.639 165.183 185.655 138.88 169.186 120.535C161.04 111.461 151.663 104.727 141.243 101.635C131.064 98.6146 119.181 98.8509 105.309 104.816C100.727 107.259 98.511 110.6 98.5806 113.125C98.6524 115.726 101.211 123.3 120.746 133.89C134.811 141.515 154.812 156.559 165.216 173.195C170.431 181.533 174.145 191.758 171.443 202.199C168.662 212.948 159.879 221.009 146.64 226.585L145.88 226.906L145.073 227.082C123.939 231.718 91.4371 232.204 62.2852 218.164C32.4815 203.811 7.31041 174.787 1.09964 122.959L1.04971 122.539L1.03869 122.117C0.437498 98.8384 6.72275 64.7984 28.2674 38.5563ZM118.426 37.8203C140.289 38.2129 160.419 47.6458 172.418 56.1595C176.484 59.0444 177.445 64.6834 174.564 68.7548C171.683 72.8262 166.052 73.7881 161.986 70.9033C152.055 63.8566 135.381 56.1977 118.102 55.8875C101.584 55.591 83.9754 61.9259 70.1374 83.8596C64.0648 95.5671 59.4141 113.685 63.9799 130.494C68.3497 146.582 81.7578 163.614 116.457 172.618C121.281 173.869 124.178 178.799 122.928 183.63C121.678 188.46 116.755 191.361 111.931 190.11C72.3433 179.838 52.9809 158.848 46.5675 135.238C40.3904 112.497 46.8212 89.4129 54.3302 75.1333L54.488 74.8333L54.6679 74.5458C72.0818 46.7124 95.8718 37.4154 118.426 37.8203Z" fill="currentColor"/>
+      <path d="M27.4941 37.9217C49.8362 10.7083 87.1364 -6.63208 144.697 2.41882L144.974 2.46277L145.004 2.46765L145.034 2.47448L145.307 2.53405L146.685 2.85339C176.054 9.95547 232.174 42.0981 236.979 117.478C237.332 123.008 233.141 127.779 227.616 128.133C222.091 128.486 217.327 124.287 216.975 118.758C212.85 54.0505 164.552 27.4833 141.265 22.1962C89.8512 14.1963 60.1327 29.7729 42.9794 50.6659C25.3272 72.1669 19.6428 100.946 20.0673 121.157C25.6378 166.578 47.0084 189.645 70.54 200.978C94.4674 212.502 121.875 212.447 140.076 208.649C149.688 204.427 152.307 200.117 153.006 197.416C153.812 194.301 153.05 189.674 149.074 183.316C141.09 170.55 124.226 157.462 111.679 150.66C91.1636 139.539 79.9185 127.291 79.5419 113.651C79.1647 99.9737 89.7947 91.3717 96.8154 87.743L97.1122 87.5897L97.1425 87.576L97.4179 87.4559L98.2499 87.0985C115.712 79.6975 132.009 79.0051 146.654 83.3505C161.344 87.7093 173.569 96.8908 183.351 107.786C202.717 129.358 214.045 159.341 216.976 179.949C217.755 185.435 213.947 190.516 208.466 191.298C202.985 192.079 197.911 188.264 197.131 182.778C194.672 165.489 184.759 139.379 168.442 121.203C160.382 112.225 151.154 105.619 140.958 102.594C131.03 99.6481 119.402 99.8544 105.747 105.717C101.328 108.083 99.5259 111.136 99.58 113.098C99.6361 115.124 101.746 122.452 121.223 133.011C135.367 140.679 155.532 155.826 166.063 172.665C171.342 181.106 175.212 191.624 172.411 202.449C169.521 213.617 160.42 221.866 147.028 227.507L146.268 227.827L146.184 227.863L145.286 228.058L145.287 228.059C123.998 232.729 91.2565 233.227 61.8515 219.065C31.7225 204.555 6.35537 175.225 0.106387 123.078L0.0565822 122.657L0.0507229 122.611L0.0497463 122.565L0.0390041 122.142C-0.566302 98.7051 5.75253 64.4038 27.4941 37.9217ZM144.387 4.39538C87.4196 -4.56217 50.8678 12.6035 29.04 39.1903C7.69235 65.1924 1.44095 98.9717 2.03803 122.091L2.04779 122.468L2.09272 122.84L2.24018 124.043C8.65505 174.797 33.4707 203.178 62.7187 217.264C91.6174 231.181 123.879 230.707 144.858 226.105L145.577 225.947L146.252 225.664C159.337 220.152 167.802 212.277 170.475 201.948C173.076 191.892 169.519 181.96 164.368 173.724C154.091 157.292 134.255 142.351 120.269 134.769C100.678 124.149 97.6687 116.329 97.581 113.152C97.4961 110.069 100.117 106.451 104.839 103.933L104.876 103.914L104.914 103.897C118.984 97.8466 131.107 97.584 141.527 100.676C152.172 103.834 161.699 110.698 169.931 119.867C186.551 138.381 196.605 164.877 199.11 182.496C199.735 186.89 203.798 189.943 208.184 189.318C212.569 188.693 215.62 184.626 214.995 180.231C212.112 159.954 200.924 130.357 181.862 109.123C172.252 98.4184 160.326 89.493 146.085 85.2675C131.694 80.9975 115.596 81.7274 98.2158 89.2899L97.9765 89.3934L97.7333 89.5194C90.939 93.0311 81.1969 101.092 81.5419 113.597C81.8865 126.076 92.2152 137.833 112.632 148.901C125.338 155.79 142.532 169.084 150.769 182.256C154.878 188.826 155.946 194.038 154.942 197.917C154.032 201.434 150.798 206.147 140.788 210.523L140.693 210.564L140.593 210.586C122.087 214.469 94.1464 214.567 69.6728 202.78C45.4858 191.132 23.716 167.444 18.0761 121.354L18.0703 121.305L18.0683 121.255C17.6256 100.724 23.3743 71.3943 41.4335 49.3973C59.1029 27.8755 89.5777 12.1192 141.61 20.2255L141.644 20.2313L141.678 20.2391C165.533 25.6421 214.771 52.7495 218.971 118.63C219.253 123.059 223.068 126.419 227.488 126.137C231.909 125.854 235.266 122.036 234.983 117.606C230.176 42.1872 173.253 10.772 144.874 4.48718L144.634 4.43347L144.387 4.39538ZM118.443 36.8202C140.561 37.2173 160.884 46.7487 172.997 55.3436C177.513 58.548 178.579 64.8104 175.38 69.3319C172.18 73.8542 165.924 74.9236 161.407 71.7186C151.591 64.7534 135.108 57.1933 118.084 56.8876C101.905 56.5971 84.6441 62.7649 71.0068 84.3563C65.0173 95.9225 60.4703 113.757 64.9453 130.232C69.2025 145.905 82.2817 162.717 116.708 171.649C122.067 173.04 125.284 178.516 123.896 183.88C122.508 189.244 117.039 192.469 111.68 191.078C71.8216 180.736 52.1291 159.527 45.6025 135.5C39.3384 112.439 45.8614 89.0899 53.4453 74.6678L53.6035 74.3671L53.6201 74.3348L53.6406 74.3026L53.8203 74.0155C71.4307 45.868 95.5586 36.4094 118.443 36.8202ZM118.407 38.8202C96.1845 38.4213 72.7328 47.5569 55.5156 75.076L55.3525 75.3368L55.2148 75.5985C47.7808 89.7356 41.442 112.555 47.5322 134.975C53.8324 158.169 72.8652 178.94 112.183 189.141C116.47 190.254 120.848 187.675 121.96 183.379C123.071 179.082 120.494 174.699 116.206 173.586C81.2342 164.512 67.4972 147.259 63.0146 130.757C58.3627 113.631 63.1035 95.2493 69.2499 83.3993L69.2695 83.3612L69.2919 83.326C83.327 61.0801 101.273 54.5851 118.12 54.8876C135.653 55.2025 152.519 62.9598 162.564 70.0878C166.179 72.6524 171.185 71.7972 173.747 68.1766C176.309 64.5553 175.455 59.5398 171.84 56.9745C159.955 48.542 140.016 39.2082 118.407 38.8202Z" fill="currentColor"/>
+    </svg>
+  );
+}
+
+
+function FlowerSpinner({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 64 64" className={className} fill="none" aria-hidden="true">
       <defs>
@@ -367,9 +352,9 @@ function FlowerSpinner({ className, isDark }: { className?: string; isDark: bool
         <path id="innerPetal" d="M32 16 C34.8 20.5, 34.8 26, 32 29.5 C29.2 26, 29.2 20.5, 32 16Z" />
       </defs>
 
-      <circle cx="32" cy="32" r="26" stroke={soft} strokeOpacity="0.22" strokeWidth="1.1" />
+      <circle cx="32" cy="32" r="26" stroke="currentColor" strokeOpacity="0.18" strokeWidth="1.1" />
 
-      <g stroke={stroke} strokeWidth="1.45" strokeLinecap="round" strokeLinejoin="round" opacity="0.94">
+      <g stroke="currentColor" strokeWidth="1.45" strokeLinecap="round" strokeLinejoin="round" opacity="1">
         <g>
           <use href="#petal" />
           <use href="#petal" transform="rotate(45 32 32)" />
@@ -389,7 +374,7 @@ function FlowerSpinner({ className, isDark }: { className?: string; isDark: bool
           />
         </g>
 
-        <g opacity="0.7">
+        <g opacity="0.72">
           <use href="#innerPetal" />
           <use href="#innerPetal" transform="rotate(60 32 32)" />
           <use href="#innerPetal" transform="rotate(120 32 32)" />
@@ -406,11 +391,11 @@ function FlowerSpinner({ className, isDark }: { className?: string; isDark: bool
           />
         </g>
 
-        <circle cx="32" cy="32" r="5.4" fill={soft} fillOpacity="0.18" stroke="none">
+        <circle cx="32" cy="32" r="5.4" fill="currentColor" fillOpacity="0.12" stroke="none">
           <animate attributeName="r" values="5;6.2;5" dur="2.2s" repeatCount="indefinite" />
-          <animate attributeName="fill-opacity" values="0.18;0.3;0.18" dur="2.2s" repeatCount="indefinite" />
+          <animate attributeName="fill-opacity" values="0.12;0.2;0.12" dur="2.2s" repeatCount="indefinite" />
         </circle>
-        <circle cx="32" cy="32" r="2.1" fill={stroke} stroke="none" />
+        <circle cx="32" cy="32" r="2.1" fill="currentColor" stroke="none" />
       </g>
     </svg>
   );
@@ -434,13 +419,11 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [language, setLanguage] = useState("en");
   const [theme, setTheme] = useState<Theme>("light");
-  const [activeHistoryId, setActiveHistoryId] = useState<string | null>(null);
   const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
   const [sharedMessageId, setSharedMessageId] = useState<string | null>(null);
   const [activeTabs, setActiveTabs] = useState<Record<string, TabKey>>({});
   const [shortlist, setShortlist] = useState<SchemeCard[]>([]);
   const [showCompare, setShowCompare] = useState(false);
-  const [showMobileHistory, setShowMobileHistory] = useState(false);
   const [showSettingsMenu, setShowSettingsMenu] = useState(false);
   const [typedAssistant, setTypedAssistant] = useState<Record<string, string>>({});
   const [typingMessageId, setTypingMessageId] = useState<string | null>(null);
@@ -451,18 +434,11 @@ export default function Home() {
   const typingTimerRef = useRef<number | null>(null);
   const animatedAssistantIdsRef = useRef<Set<string>>(new Set());
   const isDark = theme === "dark";
+  const brandColor = "var(--ji-brand)";
+  const userLabel = session?.user?.displayName || session?.user?.email?.split("@")[0] || "";
   const composerPlaceholder = composerPlaceholders[language as keyof typeof composerPlaceholders] || composerPlaceholders.en;
   const starterChips = starterChipsByLanguage[language as keyof typeof starterChipsByLanguage] || starterChipsByLanguage.en;
   const hasConversation = useMemo(() => messages.some((m) => m.role === "user"), [messages]);
-
-  const historyTurns = useMemo(
-    () =>
-      messages
-        .filter((m) => m.role === "user")
-        .map((m) => ({ id: m.id, label: shortLabel(m.content) }))
-        .reverse(),
-    [messages]
-  );
 
   const hasUncertainEvidence = useMemo(
     () => messages.some((m) => m.role === "assistant" && (!m.sources || m.sources.length === 0)),
@@ -496,8 +472,8 @@ export default function Home() {
       },
     });
     if (!res.ok) throw new Error("Unable to verify user session.");
-    const data = (await res.json()) as { id: string; email?: string };
-    return { id: data.id, email: data.email };
+    const data = (await res.json()) as { id: string; email?: string; user_metadata?: { full_name?: string; name?: string } };
+    return { id: data.id, email: data.email, displayName: data.user_metadata?.full_name || data.user_metadata?.name };
   }, [supabaseHeaders]);
 
   const refreshSupabaseSession = useCallback(async (refreshToken: string): Promise<AuthSession> => {
@@ -600,7 +576,6 @@ export default function Home() {
   const handleSignOut = () => {
     persistSession(null);
     setMessages([]);
-    setActiveHistoryId(null);
     setShortlist([]);
   };
 
@@ -719,21 +694,11 @@ export default function Home() {
     return id;
   }, []);
 
-  const jumpToMessage = (id: string) => {
-    const scroller = chatScrollRef.current;
-    const target = document.getElementById(id);
-    if (!scroller || !target) return;
-    scroller.scrollTo({ top: target.offsetTop - 12, behavior: "smooth" });
-    setActiveHistoryId(id);
-  };
-
   const resetConversation = () => {
     setMessages([]);
     setInput("");
-    setActiveHistoryId(null);
     setActiveTabs({});
     setShortlist([]);
-    setShowMobileHistory(false);
     setTypedAssistant({});
     setTypingMessageId(null);
     animatedAssistantIdsRef.current = new Set();
@@ -747,9 +712,9 @@ export default function Home() {
   };
 
   const handleShare = async (message: Message) => {
-    const text = `Yojana AI\n\n${message.content}`;
+    const text = `JanInfra\n\n${message.content}`;
     if (navigator.share) {
-      await navigator.share({ title: "Yojana AI response", text, url: window.location.href });
+      await navigator.share({ title: "JanInfra response", text, url: window.location.href });
     } else {
       await navigator.clipboard.writeText(`${text}\n\n${window.location.href}`);
     }
@@ -762,7 +727,6 @@ export default function Home() {
 
     const userMessage: Message = { id: makeMessageId(), role: "user", content: visibleUser || question };
     setMessages((prev) => [...prev, userMessage]);
-    setActiveHistoryId(userMessage.id);
     setInput("");
     setLoading(true);
 
@@ -850,7 +814,7 @@ export default function Home() {
           `<tr><td>${s.name}</td><td>${s.benefit}</td><td>${s.deadline}</td><td>${s.effort}</td></tr>`
       )
       .join("");
-    const html = `<!doctype html><html><head><title>Yojana Summary</title><style>body{font-family:Arial;padding:24px}table{border-collapse:collapse;width:100%}td,th{border:1px solid #ddd;padding:8px}</style></head><body><h1>Yojana AI Summary</h1><h3>Profile prompt</h3><p>${latestUser}</p><h3>Shortlisted schemes</h3><table><thead><tr><th>Scheme</th><th>Benefit</th><th>Deadline</th><th>Effort</th></tr></thead><tbody>${rows}</tbody></table></body></html>`;
+    const html = `<!doctype html><html><head><title>JanInfra Summary</title><style>body{font-family:Arial;padding:24px}table{border-collapse:collapse;width:100%}td,th{border:1px solid #ddd;padding:8px}</style></head><body><h1>JanInfra Summary</h1><h3>Profile prompt</h3><p>${latestUser}</p><h3>Shortlisted schemes</h3><table><thead><tr><th>Scheme</th><th>Benefit</th><th>Deadline</th><th>Effort</th></tr></thead><tbody>${rows}</tbody></table></body></html>`;
     const w = window.open("", "_blank");
     if (!w) return;
     w.document.write(html);
@@ -885,8 +849,8 @@ export default function Home() {
               void sendMessage();
             }
           }}
-          className={`w-full min-h-[52px] resize-none overflow-hidden bg-transparent text-[15px] outline-none md:min-h-[60px] ${
-            isDark ? "text-stone-100 placeholder:text-stone-500" : "text-slate-900 placeholder:text-slate-400"
+          className={`w-full min-h-[52px] resize-none overflow-hidden bg-transparent text-[17px] leading-7 outline-none placeholder:opacity-55 md:min-h-[60px] md:text-[18px] ${
+            isDark ? "text-stone-100 placeholder:text-[var(--ji-placeholder)]" : "text-slate-900 placeholder:text-[var(--ji-placeholder)]"
           }`}
           placeholder={composerPlaceholder}
         />
@@ -935,11 +899,11 @@ export default function Home() {
             disabled={loading || input.trim().length === 0}
             className={`inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-white shadow-sm transition-transform duration-200 ${
               input.trim().length === 0 || loading
-                ? "bg-transparent text-[#8f633a] shadow-none"
+                ? "bg-transparent text-[var(--ji-brand)] shadow-none"
                 : "bg-gradient-to-br from-orange-500 to-amber-500 hover:scale-[1.03]"
             } disabled:opacity-90`}
           >
-            {input.trim().length === 0 || loading ? <FlowerSpinner className="h-10 w-10" isDark={isDark} /> : "↑"}
+            {input.trim().length === 0 || loading ? <FlowerSpinner className="h-10 w-10 text-[var(--ji-brand)]" /> : "↑"}
           </button>
         </div>
       </div>
@@ -948,68 +912,45 @@ export default function Home() {
 
   if (!authReady) {
     return (
-      <main className={`relative flex h-screen items-center justify-center ${isDark ? "bg-[#18130f] text-stone-100" : "bg-[#faf8f4] text-slate-900"}`}>
-        <FlowerSpinner className="h-12 w-12" isDark={isDark} />
+      <main className={`theme-${theme} relative flex h-screen items-center justify-center bg-[var(--background)] text-[var(--foreground)]`}>
+        <FlowerSpinner className="h-12 w-12 text-[var(--ji-brand)]" />
       </main>
     );
   }
 
   return (
-    <main className={`relative h-screen overflow-hidden ${isDark ? "bg-[#18130f] text-stone-100" : "bg-[#faf8f4] text-slate-900"}`}>
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-orange-500 via-white to-emerald-500" />
-      <CornerMotif isDark={isDark} className="pointer-events-none absolute -left-8 -top-8 h-28 w-28 md:h-36 md:w-36" />
-      <CornerMotif isDark={isDark} className="pointer-events-none absolute -right-10 top-24 h-20 w-20 rotate-12 md:h-24 md:w-24" />
-      <CornerMotif isDark={isDark} className="pointer-events-none absolute -bottom-10 right-20 h-24 w-24 -rotate-6 md:h-32 md:w-32" />
+    <main className={`theme-${theme} relative h-screen overflow-hidden bg-[var(--background)] text-[var(--foreground)]`}>
+      <div
+        className="pointer-events-none absolute inset-x-0 top-0 h-1"
+        style={{ backgroundImage: "linear-gradient(to right, var(--ji-topbar-start), var(--ji-topbar-mid), var(--ji-topbar-end))" }}
+      />
       <div className="flex h-full">
-        <aside className={`hidden h-full w-[280px] flex-col border-r p-4 md:flex ${isDark ? "border-amber-950/50 bg-[#231b14]/90" : "border-slate-200 bg-white/90"}`}>
-          <div className={`mb-3 rounded-2xl border p-3 ${isDark ? "border-amber-950/40 bg-[#231b14]" : "border-slate-200 bg-slate-50 shadow-[inset_3px_0_0_0_rgba(249,115,22,0.35)]"}`}>
-            <p className={`text-[11px] uppercase tracking-[0.16em] ${isDark ? "text-stone-400" : "text-slate-600"}`}>Yojana AI</p>
-            <p className={`mt-1 text-sm font-medium ${isDark ? "text-stone-200" : "text-slate-800"}`}>Government scheme discovery for India</p>
-          </div>
-          <button
-            onClick={resetConversation}
-            className={`flex items-center gap-2 rounded-xl border px-3 py-2 text-sm ${isDark ? "border-amber-950/40 bg-[#231b14] hover:bg-[#2d241b]" : "border-slate-200 bg-white hover:bg-slate-50"}`}
-          >
-            <span className={`inline-flex h-6 w-6 items-center justify-center rounded-full border ${isDark ? "border-amber-900/50" : "border-slate-300"}`}>
-              <PlusIcon className="h-3.5 w-3.5" />
-            </span>
-            New Search
-          </button>
-          <div className={`mt-5 border-t pt-4 ${isDark ? "border-amber-950/40" : "border-slate-200"}`}>
-            <p className={`px-1 text-xs font-medium uppercase tracking-[0.15em] ${isDark ? "text-stone-400" : "text-stone-500"}`}>Recent</p>
-            <div className="mt-2 max-h-[320px] space-y-1 overflow-y-auto pr-1">
-              {historyTurns.map((turn) => (
-                <button
-                  key={turn.id}
-                  onClick={() => jumpToMessage(turn.id)}
-                  className={`w-full rounded-lg px-2 py-1.5 text-left text-sm ${
-                    activeHistoryId === turn.id
-                      ? isDark ? "bg-[#3a2d21] text-stone-100" : "bg-slate-200/70 text-slate-900"
-                      : isDark ? "text-stone-300 hover:bg-[#2d241b]" : "text-slate-700 hover:bg-white"
-                  }`}
-                >
-                  {turn.label}
-                </button>
-              ))}
-            </div>
-          </div>
-        </aside>
-
         <section className="flex min-w-0 flex-1 flex-col">
           <header className={`flex h-[64px] items-center justify-between px-3 md:px-8 ${isDark ? "border-b border-amber-950/50 bg-[#18130f]/85" : "border-b border-slate-200 bg-white/60"}`}>
             <div className="flex items-center gap-2">
+              <JanInfraBadge className="h-8 w-8" style={{ color: brandColor }} />
               <button
-                onClick={() => setShowMobileHistory((p) => !p)}
-                className={`inline-flex h-9 w-9 items-center justify-center rounded-full border md:hidden ${
-                  isDark ? "border-amber-950/40 bg-[#231b14] text-stone-200" : "border-slate-300 bg-white text-slate-700"
-                }`}
-                aria-label="Open recent history"
+                onClick={resetConversation}
+                className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs md:px-3.5 md:text-sm ${isDark ? "border-amber-950/40 bg-[#231b14] text-stone-200 hover:bg-[#2d241b]" : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50"}`}
               >
-                ☰
+                <PlusIcon className="h-3.5 w-3.5" />
+                New search
               </button>
-              <div className={`text-sm font-semibold ${isDark ? "text-stone-200" : "text-slate-800"}`}>Yojana AI</div>
             </div>
             <div className="ml-auto flex items-center gap-2">
+              <button
+                onClick={() => setTheme((p) => (p === "dark" ? "light" : "dark"))}
+                className={`inline-flex h-9 items-center gap-1.5 rounded-full border px-3 text-xs md:text-sm ${isDark ? "border-amber-950/40 bg-[#231b14] text-stone-200 hover:bg-[#2d241b]" : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50"}`}
+              >
+                {isDark ? <SunIcon className="h-4 w-4" /> : <MoonIcon className="h-4 w-4" />}
+                {isDark ? "Light" : "Dark"}
+              </button>
+              {session && userLabel && (
+                <div className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs ${isDark ? "border-amber-950/40 bg-[#231b14] text-stone-200" : "border-slate-300 bg-white text-slate-700"}`}>
+                  <UserIcon className="h-3.5 w-3.5" />
+                  <span className="hidden max-w-[120px] truncate md:inline">{userLabel}</span>
+                </div>
+              )}
               <div className="relative">
                 <button
                   onClick={() => setShowSettingsMenu((p) => !p)}
@@ -1020,6 +961,15 @@ export default function Home() {
                 </button>
                 {showSettingsMenu && (
                   <div className={`absolute right-0 mt-2 w-56 rounded-2xl border p-2 shadow-xl ${isDark ? "border-amber-950/40 bg-[#231b14]" : "border-slate-200 bg-white"}`}>
+                    <button
+                      onClick={() => {
+                        resetConversation();
+                        setShowSettingsMenu(false);
+                      }}
+                      className={`mb-1 w-full rounded-lg px-3 py-2 text-left text-sm ${isDark ? "text-stone-200 hover:bg-[#2d241b]" : "text-slate-800 hover:bg-slate-50"}`}
+                    >
+                      New search
+                    </button>
                     <button
                       onClick={() => {
                         setShowCompare((p) => !p);
@@ -1061,16 +1011,6 @@ export default function Home() {
                         ))}
                       </div>
                     </div>
-                    <button
-                      onClick={() => {
-                        setTheme((p) => (p === "dark" ? "light" : "dark"));
-                        setShowSettingsMenu(false);
-                      }}
-                      className={`mb-1 inline-flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm ${isDark ? "text-stone-200 hover:bg-[#2d241b]" : "text-slate-800 hover:bg-slate-50"}`}
-                    >
-                      {isDark ? <SunIcon className="h-4 w-4" /> : <MoonIcon className="h-4 w-4" />}
-                      {isDark ? "Light mode" : "Dark mode"}
-                    </button>
                     {authEnabled && session && (
                       <button
                         onClick={() => {
@@ -1104,7 +1044,14 @@ export default function Home() {
 
           {!hasConversation ? (
             <div className="flex flex-1 flex-col items-center justify-center px-4 pb-10">
-              <h1 className={`mb-8 text-5xl font-medium tracking-tight md:text-6xl ${isDark ? "text-stone-100" : "text-slate-900"}`}>yojana</h1>
+              <Image
+                src="/janinfra-logo.svg"
+                alt="JanInfra"
+                width={1671}
+                height={233}
+                priority
+                className={`mb-8 h-auto w-[210px] md:w-[320px] ${isDark ? "opacity-85" : "opacity-95"}`}
+              />
               <p className={`mb-6 text-center text-sm ${isDark ? "text-stone-300" : "text-slate-600"}`}>
                 Find government schemes by your life context, not by guessing portal names.
               </p>
@@ -1211,7 +1158,7 @@ export default function Home() {
                           </div>
                         )}
 
-                        <div className={`prose max-w-none ${isDark ? "prose-invert" : ""}`}>
+                    <div className={`prose max-w-none ${isDark ? "prose-invert" : ""}`}>
                           <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents(isDark)}>
                             {markdown}
                           </ReactMarkdown>
@@ -1313,7 +1260,7 @@ export default function Home() {
                   {loading && (
                     <div className={`w-full px-1 py-2 text-sm ${isDark ? "text-stone-300" : "text-slate-600"}`}>
                       <div className="inline-flex items-center">
-                        <FlowerSpinner className="h-10 w-10" isDark={isDark} />
+                        <FlowerSpinner className="h-10 w-10 text-[var(--ji-brand)]" />
                       </div>
                     </div>
                   )}
@@ -1337,54 +1284,6 @@ export default function Home() {
           )}
         </section>
       </div>
-
-      {showMobileHistory && (
-        <div className="absolute inset-0 z-40 md:hidden">
-          <button
-            onClick={() => setShowMobileHistory(false)}
-            className="absolute inset-0 bg-black/35"
-            aria-label="Close history panel"
-          />
-          <aside className={`absolute left-0 top-0 h-full w-[85%] max-w-[320px] border-r p-4 ${isDark ? "border-amber-950/40 bg-[#231b14]" : "border-slate-200 bg-white"}`}>
-            <div className="mb-3 flex items-center justify-between">
-              <p className={`text-sm font-semibold ${isDark ? "text-stone-100" : "text-slate-900"}`}>Recent searches</p>
-              <button
-                onClick={() => setShowMobileHistory(false)}
-                className={`rounded-lg border px-2 py-1 text-xs ${isDark ? "border-amber-950/40 text-stone-300" : "border-slate-300 text-slate-700"}`}
-              >
-                Close
-              </button>
-            </div>
-            <button
-              onClick={resetConversation}
-              className={`mb-3 flex w-full items-center gap-2 rounded-xl border px-3 py-2 text-sm ${isDark ? "border-amber-950/40 bg-[#2d241b]" : "border-slate-200 bg-slate-50"}`}
-            >
-              <span className={`inline-flex h-6 w-6 items-center justify-center rounded-full border ${isDark ? "border-amber-900/50" : "border-slate-300"}`}>
-                <PlusIcon className="h-3.5 w-3.5" />
-              </span>
-              New Search
-            </button>
-            <div className="max-h-[70vh] space-y-1 overflow-y-auto pr-1">
-              {historyTurns.map((turn) => (
-                <button
-                  key={`mobile-${turn.id}`}
-                  onClick={() => {
-                    jumpToMessage(turn.id);
-                    setShowMobileHistory(false);
-                  }}
-                  className={`w-full rounded-lg px-2 py-2 text-left text-sm ${
-                    activeHistoryId === turn.id
-                      ? isDark ? "bg-[#3a2d21] text-stone-100" : "bg-slate-200/70 text-slate-900"
-                      : isDark ? "text-stone-300 hover:bg-[#2d241b]" : "text-slate-700 hover:bg-slate-50"
-                  }`}
-                >
-                  {turn.label}
-                </button>
-              ))}
-            </div>
-          </aside>
-        </div>
-      )}
 
       {showCompare && (
         <div className="absolute inset-y-0 right-0 z-30 w-[380px] border-l border-slate-200 bg-white p-4 shadow-xl">
@@ -1433,7 +1332,7 @@ export default function Home() {
           />
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_20%,rgba(0,0,0,0.38)_100%)]" />
           <div className={`relative w-full max-w-md rounded-3xl border p-6 shadow-[0_16px_40px_rgba(15,23,42,0.16)] ${isDark ? "border-amber-950/40 bg-[#231b14]" : "border-slate-200 bg-white"}`}>
-            <p className={`text-xs uppercase tracking-[0.2em] ${isDark ? "text-stone-400" : "text-slate-500"}`}>Yojana AI</p>
+            <p className={`text-xs font-semibold tracking-[0.16em] ${isDark ? "text-[#d9ad88]" : "text-[#C05020]"}`}>JANINFRA</p>
             <h2 className="mt-2 text-2xl font-semibold">Sign in to continue</h2>
             <p className={`mt-2 text-sm ${isDark ? "text-stone-300" : "text-slate-600"}`}>
               {pendingMessage ? "Complete login and your message will be sent automatically." : "Continue to use the scheme assistant."}

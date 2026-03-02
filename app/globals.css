@@ -1,8 +1,33 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f8fbff;
-  --foreground: #0f172a;
+  --background: #faf8f4;
+  --foreground: #1f2937;
+  --ji-brand: #b85a2e;
+  --ji-brand-strong: #9f4923;
+  --ji-brand-soft: #f3e3d6;
+  --ji-border: #e6ddd0;
+  --ji-surface: #ffffff;
+  --ji-surface-muted: #f5efe5;
+  --ji-placeholder: #8f7f71;
+  --ji-topbar-start: #e57b3d;
+  --ji-topbar-mid: #f8e8d8;
+  --ji-topbar-end: #2f8a58;
+}
+
+.theme-dark {
+  --background: #18130f;
+  --foreground: #e7dfd5;
+  --ji-brand: #b85a2e;
+  --ji-brand-strong: #9f4923;
+  --ji-brand-soft: #2b2018;
+  --ji-border: #3b2b1f;
+  --ji-surface: #231b14;
+  --ji-surface-muted: #2d241b;
+  --ji-placeholder: #8f7a67;
+  --ji-topbar-start: #cf7f4d;
+  --ji-topbar-mid: #f8e8d8;
+  --ji-topbar-end: #2f8a58;
 }
 
 @theme inline {
