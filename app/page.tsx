@@ -406,6 +406,7 @@ export default function Home() {
   const [authGoogleLoading, setAuthGoogleLoading] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const [authNotice, setAuthNotice] = useState<string | null>(null);
+  const [authRetryUrl, setAuthRetryUrl] = useState<string | null>(null);
   const [session, setSession] = useState<AuthSession | null>(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [pendingMessage, setPendingMessage] = useState<string | null>(null);
@@ -562,6 +563,7 @@ export default function Home() {
     }
     setAuthError(null);
     setAuthNotice(null);
+    setAuthRetryUrl(null);
     setAuthGoogleLoading(true);
     if (googleRedirectTimeoutRef.current) {
       window.clearTimeout(googleRedirectTimeoutRef.current);
@@ -570,10 +572,15 @@ export default function Home() {
     if (queued) localStorage.setItem(authPendingStorageKey, queued);
     const redirectTo = window.location.origin;
     const url = `${supabaseUrl}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(redirectTo)}`;
+    const currentUrl = window.location.href;
     googleRedirectTimeoutRef.current = window.setTimeout(() => {
-      setAuthGoogleLoading(false);
-      setAuthError("Could not open Google sign-in. Please tap Continue with Google again.");
-    }, 4000);
+      // If still on the same page after waiting, expose a manual fallback.
+      if (window.location.href === currentUrl && document.visibilityState === "visible") {
+        setAuthGoogleLoading(false);
+        setAuthRetryUrl(url);
+        setAuthError("Google sign-in is taking too long. Tap Continue again or use the direct fallback link.");
+      }
+    }, 9000);
     window.location.href = url;
   };
 
@@ -1306,6 +1313,16 @@ export default function Home() {
 
             {authError && <p className="mt-3 text-sm text-rose-500">{authError}</p>}
             {authNotice && <p className={`mt-3 text-sm ${isDark ? "text-emerald-300" : "text-emerald-700"}`}>{authNotice}</p>}
+            {authRetryUrl && (
+              <a
+                href={authRetryUrl}
+                className={`mt-3 inline-block text-sm underline underline-offset-2 ${
+                  isDark ? "text-stone-200 hover:text-stone-100" : "text-slate-700 hover:text-slate-900"
+                }`}
+              >
+                Open Google sign-in directly
+              </a>
+            )}
           </div>
         </div>
       )}
