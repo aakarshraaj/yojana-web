@@ -8,6 +8,7 @@ type VoiceRecorderProps = {
   disabled?: boolean;
   isDark?: boolean;
   embedded?: boolean;
+  onError?: (message: string) => void;
   onTranscription: (text: string) => void;
 };
 
@@ -24,6 +25,7 @@ export default function VoiceRecorder({
   disabled = false,
   isDark = false,
   embedded = false,
+  onError,
   onTranscription,
 }: VoiceRecorderProps) {
   const [isRecording, setIsRecording] = useState(false);
@@ -151,6 +153,11 @@ export default function VoiceRecorder({
   const busy = disabled || isTranscribing;
   const statusText = isTranscribing ? "Transcribing" : isRecording ? `Listening ${formatSeconds(elapsedSeconds)}` : "Voice";
 
+  useEffect(() => {
+    if (!error || !onError) return;
+    onError(error);
+  }, [error, onError]);
+
   return (
     <div className={`flex flex-col ${embedded ? "items-start" : "items-end"} gap-1`}>
       <div className="flex items-center">
@@ -204,7 +211,7 @@ export default function VoiceRecorder({
           )}
         </button>
       </div>
-      {error && <span className={`max-w-[220px] text-[11px] ${embedded ? "text-left" : "text-right"} text-rose-500`}>{error}</span>}
+      {error && !embedded && <span className={`max-w-[220px] text-[11px] text-right text-rose-500`}>{error}</span>}
     </div>
   );
 }

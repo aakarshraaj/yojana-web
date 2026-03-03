@@ -50,14 +50,6 @@ type Section = {
   content: string;
 };
 
-type SchemeCard = {
-  name: string;
-  benefit: string;
-  deadline: string;
-  effort: "Low" | "Medium" | "High";
-  sourceUrl?: string;
-};
-
 const composerPlaceholders = {
   en: "Ask anything about schemes, benefits, eligibility, or documents...",
   hi: "योजनाओं, लाभ, पात्रता या दस्तावेज़ों के बारे में कुछ भी पूछें...",
@@ -85,7 +77,6 @@ const heroCopyByLanguage = {
   },
 } as const;
 
-const quickFilters = ["Only scholarships", "Only Bihar", "Highest benefit first", "Women-focused only"];
 const starterChipsByLanguage = {
   en: [
     { label: "Profile format", value: "State: \nAge: \nCategory: \nOccupation: \nFamily income: \nNeed:" },
@@ -107,10 +98,9 @@ const starterChipsByLanguage = {
   ],
 } as const;
 
-const profileTemplate =
-  "State: \nAge: \nCategory: \nOccupation: \nFamily income: \nNeed:";
 const authStorageKey = "yojana-auth-session";
 const authPendingStorageKey = "yojana-auth-pending-message";
+const chatSessionStorageKey = "yojana-chat-session-id";
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
 const authEnabled = Boolean(supabaseUrl && supabaseAnonKey);
@@ -162,6 +152,13 @@ const markdownComponents = (isDark: boolean) => ({
 });
 
 const cap = (v: string) => `${v.charAt(0).toUpperCase()}${v.slice(1)}`;
+
+const generateChatSessionId = () => {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
+  return `sess-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+};
 
 const extractHostname = (url: string) => {
   try {
@@ -248,25 +245,6 @@ const extractSections = (content: string): Section[] => {
   return out.length ? out : [{ title: "Summary", key: "summary", content }];
 };
 
-const extractSchemes = (content: string, sources: SourceCard[]): SchemeCard[] => {
-  const lines = content.split("\n");
-  const schemes: SchemeCard[] = [];
-  for (const line of lines) {
-    const numbered = line.match(/^\d+\.\s+(?:\*\*)?(.+?)(?:\*\*)?$/);
-    if (!numbered) continue;
-    const name = numbered[1].trim();
-    if (name.length < 6) continue;
-    schemes.push({
-      name,
-      benefit: "Check source details",
-      deadline: "Not specified",
-      effort: "Medium",
-      sourceUrl: sources[schemes.length]?.url || sources[0]?.url,
-    });
-  }
-  return schemes.slice(0, 6);
-};
-
 const injectCitations = (markdown: string, sourceCount: number) => {
   if (sourceCount === 0) return markdown;
   const lines = markdown.split("\n");
@@ -285,15 +263,6 @@ const injectCitations = (markdown: string, sourceCount: number) => {
   return out.join("\n");
 };
 
-function SparkIcon({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={className}>
-      <path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8" />
-      <circle cx="12" cy="12" r="3.5" />
-    </svg>
-  );
-}
-
 function ShareIcon({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={className}>
@@ -301,15 +270,6 @@ function ShareIcon({ className }: { className?: string }) {
       <circle cx="6" cy="12" r="3" />
       <circle cx="18" cy="19" r="3" />
       <path d="M8.6 10.7l6.8-3.9M8.6 13.3l6.8 3.9" />
-    </svg>
-  );
-}
-
-function CopyIcon({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={className}>
-      <rect x="9" y="9" width="11" height="11" rx="2" />
-      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
     </svg>
   );
 }
@@ -431,6 +391,7 @@ export default function Home() {
   const [authNotice, setAuthNotice] = useState<string | null>(null);
   const [authRetryUrl, setAuthRetryUrl] = useState<string | null>(null);
   const [session, setSession] = useState<AuthSession | null>(null);
+  const [chatSessionId, setChatSessionId] = useState("");
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [pendingMessage, setPendingMessage] = useState<string | null>(null);
 
@@ -439,14 +400,12 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [language, setLanguage] = useState("en");
   const [theme, setTheme] = useState<Theme>("light");
-  const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
   const [sharedMessageId, setSharedMessageId] = useState<string | null>(null);
   const [activeTabs, setActiveTabs] = useState<Record<string, TabKey>>({});
-  const [shortlist, setShortlist] = useState<SchemeCard[]>([]);
-  const [showCompare, setShowCompare] = useState(false);
   const [showSettingsMenu, setShowSettingsMenu] = useState(false);
   const [typedAssistant, setTypedAssistant] = useState<Record<string, string>>({});
   const [typingMessageId, setTypingMessageId] = useState<string | null>(null);
+  const [voiceErrorToast, setVoiceErrorToast] = useState<string | null>(null);
 
   const nextMessageId = useRef(1);
   const googleRedirectTimeoutRef = useRef<number | null>(null);
@@ -484,6 +443,19 @@ export default function Home() {
     }
     localStorage.setItem(authStorageKey, JSON.stringify(next));
   };
+
+  const persistChatSessionId = useCallback((next: string) => {
+    setChatSessionId(next);
+    if (typeof window === "undefined") return;
+    localStorage.setItem(chatSessionStorageKey, next);
+  }, []);
+
+  const ensureChatSessionId = useCallback(() => {
+    if (chatSessionId) return chatSessionId;
+    const next = generateChatSessionId();
+    persistChatSessionId(next);
+    return next;
+  }, [chatSessionId, persistChatSessionId]);
 
   const fetchSupabaseUser = useCallback(async (accessToken: string): Promise<AuthUser> => {
     const res = await fetch(`${supabaseUrl}/auth/v1/user`, {
@@ -611,8 +583,17 @@ export default function Home() {
   const handleSignOut = () => {
     persistSession(null);
     setMessages([]);
-    setShortlist([]);
   };
+
+  useEffect(() => {
+    if (chatSessionId) return;
+    const saved = localStorage.getItem(chatSessionStorageKey);
+    if (saved) {
+      setChatSessionId(saved);
+      return;
+    }
+    persistChatSessionId(generateChatSessionId());
+  }, [chatSessionId, persistChatSessionId]);
 
   useEffect(() => {
     const saved = localStorage.getItem("yojana-theme");
@@ -678,17 +659,11 @@ export default function Home() {
     setMessages([]);
     setInput("");
     setActiveTabs({});
-    setShortlist([]);
     setTypedAssistant({});
     setTypingMessageId(null);
     animatedAssistantIdsRef.current = new Set();
     nextMessageId.current = 1;
-  };
-
-  const handleCopy = async (message: Message) => {
-    await navigator.clipboard.writeText(message.content);
-    setCopiedMessageId(message.id);
-    window.setTimeout(() => setCopiedMessageId(null), 1400);
+    persistChatSessionId(generateChatSessionId());
   };
 
   const handleShare = async (message: Message) => {
@@ -704,6 +679,7 @@ export default function Home() {
 
   const submitQuestion = useCallback(async (question: string, visibleUser?: string) => {
     if (!question || loading) return;
+    const currentSessionId = ensureChatSessionId();
 
     const userMessage: Message = { id: makeMessageId(), role: "user", content: visibleUser || question };
     setMessages((prev) => [...prev, userMessage]);
@@ -715,9 +691,9 @@ export default function Home() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          ...(authEnabled && session?.accessToken ? { Authorization: `Bearer ${session.accessToken}` } : {}),
+          ...(session?.accessToken ? { Authorization: `Bearer ${session.accessToken}` } : {}),
         },
-        body: JSON.stringify({ question, language }),
+        body: JSON.stringify({ question, language, sessionId: currentSessionId }),
       });
       const text = await res.text();
       let data: ChatResponse = {};
@@ -743,7 +719,7 @@ export default function Home() {
     } finally {
       setLoading(false);
     }
-  }, [language, loading, makeMessageId, session?.accessToken]);
+  }, [ensureChatSessionId, language, loading, makeMessageId, session?.accessToken]);
 
   useEffect(() => {
     if (!session || !pendingMessage || loading) return;
@@ -767,44 +743,6 @@ export default function Home() {
       return;
     }
     await submitQuestion(q);
-  };
-
-  const regenerateStrict = async (assistantIndex: number) => {
-    for (let i = assistantIndex - 1; i >= 0; i -= 1) {
-      if (messages[i].role === "user") {
-        const strict = `${messages[i].content}\n\nUse only official government sources (gov.in, nic.in, official PDFs). Add citations.`;
-        await submitQuestion(strict, "Regenerate official-only");
-        break;
-      }
-    }
-  };
-
-  const addToShortlist = (item: SchemeCard) => {
-    setShortlist((prev) => {
-      if (prev.some((p) => p.name.toLowerCase() === item.name.toLowerCase())) return prev;
-      return [...prev, item];
-    });
-  };
-
-  const downloadSummary = () => {
-    const latestUser = [...messages].reverse().find((m) => m.role === "user")?.content || "";
-    const rows = shortlist
-      .map(
-        (s) =>
-          `<tr><td>${s.name}</td><td>${s.benefit}</td><td>${s.deadline}</td><td>${s.effort}</td></tr>`
-      )
-      .join("");
-    const html = `<!doctype html><html><head><title>JanInfra Summary</title><style>body{font-family:Arial;padding:24px}table{border-collapse:collapse;width:100%}td,th{border:1px solid #ddd;padding:8px}</style></head><body><h1>JanInfra Summary</h1><h3>Profile prompt</h3><p>${latestUser}</p><h3>Shortlisted schemes</h3><table><thead><tr><th>Scheme</th><th>Benefit</th><th>Deadline</th><th>Effort</th></tr></thead><tbody>${rows}</tbody></table></body></html>`;
-    const w = window.open("", "_blank");
-    if (!w) return;
-    w.document.write(html);
-    w.document.close();
-    w.focus();
-    w.print();
-  };
-
-  const applyTemplate = () => {
-    setInput(profileTemplate);
   };
 
   const renderComposer = () => (
@@ -867,15 +805,6 @@ export default function Home() {
                 <path d="M5 7.5 10 12.5 15 7.5" />
               </svg>
             </div>
-            <button
-              onClick={applyTemplate}
-              className={`inline-flex h-10 items-center gap-1 rounded-full border px-3 text-xs transition-all duration-200 ${
-                isDark ? "border-amber-950/40 text-stone-300 hover:border-amber-800/60 hover:bg-[#2d241b]" : "border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50"
-              }`}
-            >
-              <PlusIcon className="h-3.5 w-3.5" />
-              Add profile
-            </button>
           </div>
             <div
               className={`inline-flex items-center gap-1 rounded-full border p-1 ${
@@ -887,6 +816,10 @@ export default function Home() {
                 disabled={loading}
                 isDark={isDark}
                 embedded
+                onError={(message) => {
+                  setVoiceErrorToast(message);
+                  window.setTimeout(() => setVoiceErrorToast(null), 3000);
+                }}
                 onTranscription={(text) => {
                   const normalized = text.trim();
                   if (!normalized) return;
@@ -972,34 +905,6 @@ export default function Home() {
                       aria-label="Close account menu"
                     />
                     <div className={`fixed left-3 right-3 top-[76px] z-50 rounded-2xl border p-2 shadow-xl md:absolute md:left-auto md:right-0 md:top-full md:mt-2 md:w-56 ${isDark ? "border-amber-950/40 bg-[#231b14]" : "border-slate-200 bg-white"}`}>
-                    <button
-                      onClick={() => {
-                        resetConversation();
-                        setShowSettingsMenu(false);
-                      }}
-                      className={`mb-1 w-full rounded-lg px-3 py-2 text-left text-sm ${isDark ? "text-stone-200 hover:bg-[#2d241b]" : "text-slate-800 hover:bg-slate-50"}`}
-                    >
-                      New search
-                    </button>
-                    <button
-                      onClick={() => {
-                        setShowCompare((p) => !p);
-                        setShowSettingsMenu(false);
-                      }}
-                      className={`mb-1 w-full rounded-lg px-3 py-2 text-left text-sm ${isDark ? "text-stone-200 hover:bg-[#2d241b]" : "text-slate-800 hover:bg-slate-50"}`}
-                    >
-                      Shortlist ({shortlist.length})
-                    </button>
-                    <button
-                      onClick={() => {
-                        downloadSummary();
-                        setShowSettingsMenu(false);
-                      }}
-                      disabled={shortlist.length === 0}
-                      className={`mb-1 w-full rounded-lg px-3 py-2 text-left text-sm disabled:opacity-50 ${isDark ? "text-stone-200 hover:bg-[#2d241b]" : "text-slate-800 hover:bg-slate-50"}`}
-                    >
-                      Download PDF
-                    </button>
                     <div className={`mb-2 mt-1 border-t pt-2 ${isDark ? "border-amber-950/40" : "border-slate-200"}`}>
                       <p className={`mb-1 px-1 text-[11px] uppercase tracking-[0.12em] ${isDark ? "text-stone-500" : "text-slate-500"}`}>Language</p>
                       <div
@@ -1118,7 +1023,6 @@ export default function Home() {
                     const prevUser = [...messages.slice(0, index)].reverse().find((m) => m.role === "user");
                     const profile = parseProfile(prevUser?.content || "");
                     const status = fieldStatus(profile);
-                    const missing = (Object.keys(status) as ProfileField[]).filter((k) => status[k] === "missing");
                     const isTypingThis = typingMessageId === message.id;
                     const displayContent = isTypingThis ? typedAssistant[message.id] || "" : message.content;
 
@@ -1131,7 +1035,6 @@ export default function Home() {
                     const activeTab = activeTabs[message.id] || tabs[0];
                     const baseMarkdown = showTabs && activeTab ? sectionMap.get(activeTab)?.content || message.content : displayContent;
                     const markdown = injectCitations(baseMarkdown, message.sources?.length || 0);
-                    const schemes = isTypingThis ? [] : extractSchemes(message.content, message.sources || []);
                     const uncertain = (message.sources?.length || 0) === 0;
 
                     return (
@@ -1181,66 +1084,10 @@ export default function Home() {
                           </ReactMarkdown>
                         </div>
 
-                        {schemes.length > 0 && (
-                          <div className={`mt-4 border-t pt-3 ${isDark ? "border-amber-950/50" : "border-slate-200"}`}>
-                            <p className={`mb-2 text-[10px] font-semibold uppercase tracking-[0.15em] ${isDark ? "text-stone-500" : "text-stone-500"}`}>Scheme Actions</p>
-                            <div className="space-y-2">
-                              {schemes.map((s) => (
-                                <div key={`${message.id}-${s.name}`} className={`flex flex-wrap items-center gap-2 rounded-xl border p-2 ${isDark ? "border-amber-950/40 bg-[#231b14]" : "border-slate-200 bg-slate-50"}`}>
-                                  <span className={`mr-auto text-xs font-medium ${isDark ? "text-stone-200" : "text-slate-800"}`}>{s.name}</span>
-                                  <div className="flex w-full flex-wrap gap-2 sm:w-auto sm:justify-end">
-                                    {s.sourceUrl && (
-                                      <a href={s.sourceUrl} target="_blank" rel="noreferrer" className={`rounded-md px-2 py-1 text-xs ${isDark ? "bg-[#2d241b] text-stone-200" : "bg-white text-slate-700"}`}>
-                                        Official page
-                                      </a>
-                                    )}
-                                    <button onClick={() => setInput(`Check detailed eligibility for ${s.name} with my profile.`)} className={`rounded-md px-2 py-1 text-xs ${isDark ? "bg-[#2d241b] text-stone-200" : "bg-white text-slate-700"}`}>Eligibility check</button>
-                                    <button onClick={() => setInput(`Give me required document checklist for ${s.name}.`)} className={`rounded-md px-2 py-1 text-xs ${isDark ? "bg-[#2d241b] text-stone-200" : "bg-white text-slate-700"}`}>Docs checklist</button>
-                                    <button onClick={() => setInput(`Give step-by-step apply process for ${s.name}.`)} className={`rounded-md px-2 py-1 text-xs ${isDark ? "bg-[#2d241b] text-stone-200" : "bg-white text-slate-700"}`}>Apply steps</button>
-                                    <button onClick={() => addToShortlist(s)} className={`rounded-md px-2 py-1 text-xs ${isDark ? "bg-emerald-900/30 text-emerald-300" : "bg-emerald-50 text-emerald-700"}`}>+ Shortlist</button>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-
-                        {!isTypingThis && (
-                        <div className="mt-3 flex flex-wrap gap-1.5">
-                          {missing.map((f) => (
-                            <button
-                              key={`${message.id}-missing-${f}`}
-                              onClick={() => setInput((p) => `${p}${p ? "\n" : ""}${cap(f)}: `)}
-                              className={`rounded-full border px-3 py-1 text-xs transition-all duration-200 ${isDark ? "border-amber-950/40 text-stone-300 hover:border-amber-800/60" : "border-slate-200 text-slate-600 hover:border-slate-300"}`}
-                            >
-                              Add {cap(f)}
-                            </button>
-                          ))}
-                          {quickFilters.map((f) => (
-                            <button
-                              key={`${message.id}-filter-${f}`}
-                              onClick={() => setInput((p) => `${p}${p ? "\n" : ""}${f}`)}
-                              className={`rounded-full border px-3 py-1 text-xs transition-all duration-200 ${isDark ? "border-amber-950/40 text-stone-300 hover:border-amber-800/60" : "border-slate-200 text-slate-600 hover:border-slate-300"}`}
-                            >
-                              {f}
-                            </button>
-                          ))}
-                        </div>
-                        )}
-
                         {!isTypingThis && (
                         <div className="mt-4 flex flex-wrap items-center gap-2 opacity-75 transition-opacity duration-200 hover:opacity-100">
-                          <button onClick={() => void handleCopy(message)} className={`inline-flex items-center gap-1 rounded-md border px-2.5 py-1 text-xs transition-all duration-200 ${isDark ? "border-amber-950/40 bg-[#231b14] text-stone-300 hover:border-amber-800/60" : "border-slate-200 bg-slate-50 text-slate-600 hover:border-slate-300"}`}>
-                            <CopyIcon className="h-3.5 w-3.5" />
-                            {copiedMessageId === message.id ? "Copied" : "Copy"}
-                          </button>
-                          <button onClick={() => void handleShare(message)} className={`inline-flex items-center gap-1 rounded-md border px-2.5 py-1 text-xs transition-all duration-200 ${isDark ? "border-amber-950/40 bg-[#231b14] text-stone-300 hover:border-amber-800/60" : "border-slate-200 bg-slate-50 text-slate-600 hover:border-slate-300"}`}>
+                          <button onClick={() => void handleShare(message)} aria-label={sharedMessageId === message.id ? "Shared" : "Share response"} className={`inline-flex items-center rounded-md border p-2 text-xs transition-all duration-200 ${isDark ? "border-amber-950/40 bg-[#231b14] text-stone-300 hover:border-amber-800/60" : "border-slate-200 bg-slate-50 text-slate-600 hover:border-slate-300"}`}>
                             <ShareIcon className="h-3.5 w-3.5" />
-                            {sharedMessageId === message.id ? "Shared" : "Share"}
-                          </button>
-                          <button onClick={() => void regenerateStrict(index)} className={`inline-flex items-center gap-1 rounded-md border px-2.5 py-1 text-xs transition-all duration-200 ${isDark ? "border-amber-950/40 bg-[#231b14] text-stone-300 hover:border-amber-800/60" : "border-slate-200 bg-slate-50 text-slate-600 hover:border-slate-300"}`}>
-                            <SparkIcon className="h-3.5 w-3.5" />
-                            Regenerate official-only
                           </button>
                         </div>
                         )}
@@ -1302,38 +1149,11 @@ export default function Home() {
         </section>
       </div>
 
-      {showCompare && (
-        <div className="absolute inset-y-0 right-0 z-30 w-[380px] border-l border-slate-200 bg-white p-4 shadow-xl">
-          <div className="mb-3 flex items-center justify-between">
-            <h3 className="text-base font-semibold text-slate-900">Shortlist Compare</h3>
-            <button onClick={() => setShowCompare(false)} className="rounded border px-2 py-1 text-xs">Close</button>
+      {voiceErrorToast && (
+        <div className="pointer-events-none absolute bottom-28 left-1/2 z-40 w-[calc(100%-1.5rem)] max-w-md -translate-x-1/2 md:bottom-24">
+          <div className={`rounded-xl border px-3 py-2 text-xs shadow-lg ${isDark ? "border-amber-900/40 bg-[#2b2117] text-rose-200" : "border-rose-200 bg-rose-50 text-rose-700"}`}>
+            {voiceErrorToast}
           </div>
-          {shortlist.length === 0 ? (
-            <p className="text-sm text-stone-500">No schemes shortlisted yet.</p>
-          ) : (
-            <div className="overflow-auto">
-              <table className="w-full border-collapse text-xs">
-                <thead>
-                  <tr>
-                    <th className="border px-2 py-1 text-left">Scheme</th>
-                    <th className="border px-2 py-1 text-left">Benefit</th>
-                    <th className="border px-2 py-1 text-left">Deadline</th>
-                    <th className="border px-2 py-1 text-left">Effort</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {shortlist.map((s, i) => (
-                    <tr key={`${s.name}-${i}`}>
-                      <td className="border px-2 py-1">{s.name}</td>
-                      <td className="border px-2 py-1">{s.benefit}</td>
-                      <td className="border px-2 py-1">{s.deadline}</td>
-                      <td className="border px-2 py-1">{s.effort}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
         </div>
       )}
 
