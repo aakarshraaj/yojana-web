@@ -7,8 +7,6 @@ import VoiceRecorder from "@/components/VoiceRecorder";
 
 type Theme = "light" | "dark";
 type TabKey = "summary" | "eligibility" | "documents" | "apply";
-type ProfileField = "state" | "age" | "category" | "income";
-type MatchStatus = "match" | "missing";
 
 type SourceCard = {
   title: string;
@@ -41,8 +39,6 @@ type AuthSession = {
   refreshToken: string;
   user: AuthUser;
 };
-
-type ProfileContext = Partial<Record<ProfileField, string>>;
 
 type Section = {
   key: TabKey | "other";
@@ -198,22 +194,6 @@ const normalizeSources = (value: unknown): SourceCard[] => {
   for (const s of list) uniq.set(`${s.title}::${s.url}`, s);
   return Array.from(uniq.values()).slice(0, 8);
 };
-
-const parseProfile = (text: string): ProfileContext => {
-  const age = text.match(/\bage\s*[:\-]?\s*(\d{1,2})\b/i)?.[1] || text.match(/\b(\d{1,2})\s*(?:years?|yrs?)\s*old\b/i)?.[1];
-  const category = text.match(/\b(sc|st|obc|ews|general|minority)\b/i)?.[1] || text.match(/\bcategory\s*[:\-]?\s*([a-z ]+)/i)?.[1];
-  const income = text.match(/\bincome\s*[:\-]?\s*([^\n,]+)/i)?.[1] || text.match(/₹\s?[\d,]+/i)?.[0];
-  const state = text.match(/\bstate\s*[:\-]?\s*([a-zA-Z ]{3,})/i)?.[1] || text.match(/\bin\s+([a-zA-Z ]{3,})\b/i)?.[1];
-  const safeState = state?.trim();
-  return { state: safeState, age, category, income };
-};
-
-const fieldStatus = (profile: ProfileContext): Record<ProfileField, MatchStatus> => ({
-  state: profile.state ? "match" : "missing",
-  age: profile.age ? "match" : "missing",
-  category: profile.category ? "match" : "missing",
-  income: profile.income ? "match" : "missing",
-});
 
 const extractSections = (content: string): Section[] => {
   const lines = content.split("\n");
@@ -1008,7 +988,7 @@ export default function Home() {
                 }
               >
                 <div className="mx-auto w-full max-w-4xl space-y-8 md:space-y-10">
-                  {messages.map((message, index) => {
+                  {messages.map((message) => {
                     if (message.role === "user") {
                       return (
                         <article key={message.id} id={message.id}>
@@ -1020,9 +1000,6 @@ export default function Home() {
                       );
                     }
 
-                    const prevUser = [...messages.slice(0, index)].reverse().find((m) => m.role === "user");
-                    const profile = parseProfile(prevUser?.content || "");
-                    const status = fieldStatus(profile);
                     const isTypingThis = typingMessageId === message.id;
                     const displayContent = isTypingThis ? typedAssistant[message.id] || "" : message.content;
 
@@ -1042,23 +1019,6 @@ export default function Home() {
                         <p className={`mb-2 text-[10px] font-semibold uppercase tracking-[0.16em] ${isDark ? "text-stone-500" : "text-stone-400"}`}>Assistant</p>
 
                         {uncertain && null}
-
-                        {!isTypingThis && (
-                          <div className="mb-3 flex flex-wrap gap-2">
-                          {(Object.keys(status) as ProfileField[]).map((f) => (
-                            <span
-                              key={`${message.id}-${f}`}
-                              className={`rounded-full border px-2 py-1 text-[11px] ${
-                                status[f] === "match"
-                                  ? isDark ? "border-emerald-700 bg-emerald-900/20 text-emerald-300" : "border-emerald-200 bg-emerald-50 text-emerald-700"
-                                  : isDark ? "border-amber-950/40 bg-[#231b14] text-stone-300" : "border-slate-200 bg-slate-100 text-slate-600"
-                              }`}
-                            >
-                              {cap(f)}: {status[f] === "match" ? "Provided" : "Missing"}
-                            </span>
-                          ))}
-                          </div>
-                        )}
 
                         {showTabs && (
                           <div className="mb-3 flex flex-wrap gap-2">
