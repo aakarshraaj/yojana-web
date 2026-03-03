@@ -1,9 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import Image from "next/image";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import VoiceRecorder from "@/components/VoiceRecorder";
 
 type Theme = "light" | "dark";
 type TabKey = "summary" | "eligibility" | "documents" | "apply";
@@ -62,6 +62,27 @@ const composerPlaceholders = {
   en: "Ask anything about schemes, benefits, eligibility, or documents...",
   hi: "योजनाओं, लाभ, पात्रता या दस्तावेज़ों के बारे में कुछ भी पूछें...",
   mr: "योजना, लाभ, पात्रता किंवा कागदपत्रांविषयी काहीही विचारा...",
+  bn: "স্কিম, সুবিধা, যোগ্যতা বা নথি সম্পর্কে যা খুশি জিজ্ঞাসা করুন...",
+} as const;
+const languageOptions = [
+  { value: "en", label: "English", short: "EN" },
+  { value: "hi", label: "हिंदी", short: "HI" },
+  { value: "mr", label: "मराठी", short: "MR" },
+  { value: "bn", label: "বাংলা", short: "BN" },
+];
+const heroCopyByLanguage = {
+  en: {
+    primary: "Find schemes by your profile.",
+  },
+  hi: {
+    primary: "अपनी प्रोफ़ाइल के आधार पर योजनाएँ खोजें।",
+  },
+  mr: {
+    primary: "तुमच्या प्रोफाइलनुसार योजना शोधा.",
+  },
+  bn: {
+    primary: "আপনার প্রোফাইল অনুযায়ী স্কিম খুঁজুন।",
+  },
 } as const;
 
 const quickFilters = ["Only scholarships", "Only Bihar", "Highest benefit first", "Women-focused only"];
@@ -71,21 +92,18 @@ const starterChipsByLanguage = {
     { label: "Check eligibility", value: "Check my eligibility with this profile:\nState: \nAge: \nCategory: \nOccupation: \nFamily income: " },
     { label: "Documents needed", value: "List required documents based on my profile:\nState: \nAge: \nCategory: \nOccupation: \nFamily income: " },
     { label: "How to apply", value: "Give step-by-step apply process for best-fit schemes for this profile:\nState: \nAge: \nCategory: \nOccupation: \nFamily income: " },
-    { label: "Official sources only", value: "Suggest schemes for my profile using only official government sources (gov.in, nic.in, official PDFs).\nState: \nAge: \nCategory: \nOccupation: \nFamily income: " },
   ],
   hi: [
     { label: "प्रोफाइल प्रारूप", value: "राज्य: \nआयु: \nश्रेणी: \nपेशा: \nपरिवार की आय: \nज़रूरत:" },
     { label: "पात्रता जांचें", value: "इस प्रोफाइल के आधार पर मेरी पात्रता जांचें:\nराज्य: \nआयु: \nश्रेणी: \nपेशा: \nपरिवार की आय: " },
     { label: "आवश्यक दस्तावेज़", value: "मेरी प्रोफाइल के अनुसार आवश्यक दस्तावेज़ों की सूची दें:\nराज्य: \nआयु: \nश्रेणी: \nपेशा: \nपरिवार की आय: " },
     { label: "आवेदन कैसे करें", value: "इस प्रोफाइल के लिए सबसे उपयुक्त योजनाओं की चरण-दर-चरण आवेदन प्रक्रिया बताएं:\nराज्य: \nआयु: \nश्रेणी: \nपेशा: \nपरिवार की आय: " },
-    { label: "केवल आधिकारिक स्रोत", value: "मेरी प्रोफाइल के लिए केवल आधिकारिक सरकारी स्रोतों (gov.in, nic.in, official PDFs) से योजनाएं सुझाएं:\nराज्य: \nआयु: \nश्रेणी: \nपेशा: \nपरिवार की आय: " },
   ],
   mr: [
     { label: "प्रोफाइल स्वरूप", value: "राज्य: \nवय: \nप्रवर्ग: \nव्यवसाय: \nकुटुंब वार्षिक उत्पन्न: \nगरज:" },
     { label: "पात्रता तपासा", value: "या प्रोफाइलवर आधारित माझी पात्रता तपासा:\nराज्य: \nवय: \nप्रवर्ग: \nव्यवसाय: \nकुटुंब वार्षिक उत्पन्न: " },
     { label: "आवश्यक कागदपत्रे", value: "माझ्या प्रोफाइलनुसार आवश्यक कागदपत्रांची यादी द्या:\nराज्य: \nवय: \nप्रवर्ग: \nव्यवसाय: \nकुटुंब वार्षिक उत्पन्न: " },
     { label: "अर्ज कसा करायचा", value: "या प्रोफाइलसाठी योग्य योजनांची टप्प्याटप्प्याने अर्ज प्रक्रिया द्या:\nराज्य: \nवय: \nप्रवर्ग: \nव्यवसाय: \nकुटुंब वार्षिक उत्पन्न: " },
-    { label: "फक्त अधिकृत स्रोत", value: "माझ्या प्रोफाइलसाठी फक्त अधिकृत सरकारी स्रोतांवरून (gov.in, nic.in, official PDFs) योजना सुचवा:\nराज्य: \nवय: \nप्रवर्ग: \nव्यवसाय: \nकुटुंब वार्षिक उत्पन्न: " },
   ],
 } as const;
 
@@ -96,7 +114,12 @@ const authPendingStorageKey = "yojana-auth-pending-message";
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
 const authEnabled = Boolean(supabaseUrl && supabaseAnonKey);
-const apiBaseUrl = (process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000").replace(/\/+$/, "");
+const chatApiBaseUrl = (
+  process.env.NEXT_PUBLIC_CHAT_API_BASE_URL ||
+  process.env.NEXT_PUBLIC_YOJANA_AI_BASE_URL ||
+  process.env.NEXT_PUBLIC_API_BASE_URL ||
+  "http://localhost:3000"
+).replace(/\/+$/, "");
 
 const markdownComponents = (isDark: boolean) => ({
   h1: (props: React.HTMLAttributes<HTMLHeadingElement>) => (
@@ -436,6 +459,7 @@ export default function Home() {
   const userLabel = session?.user?.displayName || session?.user?.email?.split("@")[0] || "";
   const composerPlaceholder = composerPlaceholders[language as keyof typeof composerPlaceholders] || composerPlaceholders.en;
   const starterChips = starterChipsByLanguage[language as keyof typeof starterChipsByLanguage] || starterChipsByLanguage.en;
+  const heroCopy = heroCopyByLanguage[language as keyof typeof heroCopyByLanguage] || heroCopyByLanguage.en;
   const hasConversation = useMemo(() => messages.some((m) => m.role === "user"), [messages]);
 
   const hasUncertainEvidence = useMemo(
@@ -687,7 +711,7 @@ export default function Home() {
     setLoading(true);
 
     try {
-      const res = await fetch(`${apiBaseUrl}/chat`, {
+      const res = await fetch(`${chatApiBaseUrl}/chat`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -810,35 +834,38 @@ export default function Home() {
           }`}
           placeholder={composerPlaceholder}
         />
-        <div className="mt-3 flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 pr-1">
+          <div className="mt-3 flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 overflow-x-auto pb-1 pr-1">
             <div
-              className={`inline-flex h-10 items-center rounded-full border p-0.5 ${
+              className={`relative inline-flex h-9 items-center rounded-full border px-1 ${
                 isDark ? "border-amber-950/40 bg-[#231b14]" : "border-slate-200 bg-white"
               }`}
               aria-label="Response language"
             >
-              {[
-                { value: "en", label: "EN" },
-                { value: "hi", label: "हिंदी" },
-                { value: "mr", label: "मराठी" },
-              ].map((lang) => (
-                <button
-                  key={lang.value}
-                  onClick={() => setLanguage(lang.value)}
-                  className={`inline-flex h-full items-center rounded-full px-3 text-xs transition-colors duration-200 ${
-                    language === lang.value
-                      ? isDark
-                        ? "bg-[#3a2d21] text-stone-100"
-                        : "bg-slate-100 text-slate-900"
-                      : isDark
-                        ? "text-stone-300 hover:text-stone-100"
-                        : "text-slate-600 hover:text-slate-900"
-                  }`}
-                >
-                  {lang.label}
-                </button>
-              ))}
+              <select
+                value={language}
+                onChange={(e) => setLanguage(e.target.value)}
+                className={`h-full w-auto appearance-none bg-transparent pl-2.5 pr-7 text-xs outline-none ${
+                  isDark ? "text-stone-200" : "text-slate-700"
+                }`}
+                aria-label="Select language"
+              >
+                {languageOptions.map((lang) => (
+                  <option key={lang.value} value={lang.value}>
+                    {lang.short}
+                  </option>
+                ))}
+              </select>
+              <svg
+                viewBox="0 0 20 20"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                className={`pointer-events-none absolute right-2 h-3.5 w-3.5 ${isDark ? "text-stone-400" : "text-slate-500"}`}
+                aria-hidden="true"
+              >
+                <path d="M5 7.5 10 12.5 15 7.5" />
+              </svg>
             </div>
             <button
               onClick={applyTemplate}
@@ -850,18 +877,44 @@ export default function Home() {
               Add profile
             </button>
           </div>
-          <button
-            onClick={() => void sendMessage()}
-            disabled={loading || input.trim().length === 0}
-            className={`inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-white shadow-sm transition-transform duration-200 ${
-              input.trim().length === 0 || loading
-                ? "bg-transparent text-[var(--ji-brand)] shadow-none"
-                : "bg-gradient-to-br from-orange-500 to-amber-500 hover:scale-[1.03]"
-            } disabled:opacity-90`}
-          >
-            {input.trim().length === 0 || loading ? <FlowerSpinner className="h-10 w-10 text-[var(--ji-brand)]" /> : "↑"}
-          </button>
-        </div>
+            <div
+              className={`inline-flex items-center gap-1 rounded-full border p-1 ${
+                isDark ? "border-amber-950/40 bg-[#1f1711]/90" : "border-slate-200 bg-slate-50/80"
+              }`}
+            >
+              <VoiceRecorder
+                language={language}
+                disabled={loading}
+                isDark={isDark}
+                embedded
+                onTranscription={(text) => {
+                  const normalized = text.trim();
+                  if (!normalized) return;
+                  setInput((prev) => (prev.trim().length ? `${prev.trimEnd()} ${normalized}` : normalized));
+                }}
+              />
+              {(loading || input.trim().length > 0) && (
+                <>
+                  <span className={`h-6 w-px ${isDark ? "bg-amber-900/40" : "bg-slate-200"}`} />
+                  <button
+                    onClick={() => void sendMessage()}
+                    disabled={loading || input.trim().length === 0}
+                    className={`inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-white shadow-sm transition-all duration-200 ${
+                      input.trim().length === 0 || loading
+                        ? "bg-transparent text-[var(--ji-brand)] shadow-none"
+                        : "bg-[var(--ji-brand)] hover:bg-[var(--ji-brand-strong)] hover:scale-[1.02]"
+                    } cursor-pointer disabled:cursor-not-allowed disabled:opacity-90`}
+                  >
+                    {loading ? (
+                      <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-r-transparent" />
+                    ) : (
+                      "↑"
+                    )}
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
       </div>
     </div>
   );
@@ -949,24 +1002,35 @@ export default function Home() {
                     </button>
                     <div className={`mb-2 mt-1 border-t pt-2 ${isDark ? "border-amber-950/40" : "border-slate-200"}`}>
                       <p className={`mb-1 px-1 text-[11px] uppercase tracking-[0.12em] ${isDark ? "text-stone-500" : "text-slate-500"}`}>Language</p>
-                      <div className="inline-flex w-full items-center rounded-full border p-0.5">
-                        {[
-                          { value: "en", label: "EN" },
-                          { value: "hi", label: "हिंदी" },
-                          { value: "mr", label: "मराठी" },
-                        ].map((lang) => (
-                          <button
-                            key={`menu-${lang.value}`}
-                            onClick={() => setLanguage(lang.value)}
-                            className={`flex-1 rounded-full px-2 py-1 text-xs ${
-                              language === lang.value
-                                ? isDark ? "bg-[#3a2d21] text-stone-100" : "bg-slate-100 text-slate-900"
-                                : isDark ? "text-stone-300" : "text-slate-600"
-                            }`}
-                          >
-                            {lang.label}
-                          </button>
-                        ))}
+                      <div
+                        className={`relative inline-flex h-10 w-full items-center rounded-full border ${
+                          isDark ? "border-amber-950/40 bg-[#231b14]" : "border-slate-200 bg-white"
+                        }`}
+                      >
+                        <select
+                          value={language}
+                          onChange={(e) => setLanguage(e.target.value)}
+                          className={`h-full w-full appearance-none bg-transparent pl-3 pr-9 text-sm outline-none ${
+                            isDark ? "text-stone-200" : "text-slate-700"
+                          }`}
+                          aria-label="Select language"
+                        >
+                          {languageOptions.map((lang) => (
+                            <option key={`menu-${lang.value}`} value={lang.value}>
+                              {lang.short}
+                            </option>
+                          ))}
+                        </select>
+                        <svg
+                          viewBox="0 0 20 20"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="1.8"
+                          className={`pointer-events-none absolute right-3 h-3.5 w-3.5 ${isDark ? "text-stone-400" : "text-slate-500"}`}
+                          aria-hidden="true"
+                        >
+                          <path d="M5 7.5 10 12.5 15 7.5" />
+                        </svg>
                       </div>
                     </div>
                     {authEnabled && session && (
@@ -1002,19 +1066,14 @@ export default function Home() {
 
           {!hasConversation ? (
             <div className="flex flex-1 flex-col items-center justify-center px-4 pb-10">
-              <Image
-                src="/janinfra-logo.svg"
-                alt="JanInfra"
-                width={1671}
-                height={233}
-                priority
-                className={`mb-8 h-auto w-[210px] md:w-[320px] ${isDark ? "opacity-85" : "opacity-95"}`}
-              />
-              <p className={`mb-6 text-center text-sm ${isDark ? "text-stone-300" : "text-slate-600"}`}>
-                Find government schemes by your life context, not by guessing portal names.
-              </p>
-              <div className="w-full max-w-4xl">{renderComposer()}</div>
-              <div className="mt-5 flex w-full max-w-4xl items-center justify-start gap-2 overflow-x-auto pb-1 md:flex-wrap md:justify-center">
+              <div className="mb-1 flex items-center justify-center gap-2.5 md:gap-3.5">
+                <FlowerSpinner className={`h-8 w-8 md:h-10 md:w-10 ${isDark ? "text-[var(--ji-brand)]/90" : "text-[var(--ji-brand)]"}`} />
+                <p className={`text-center text-xl font-medium leading-tight md:text-3xl ${isDark ? "text-stone-100" : "text-slate-800"}`}>
+                  {heroCopy.primary}
+                </p>
+              </div>
+              <div className="mt-2 w-full max-w-3xl">{renderComposer()}</div>
+              <div className="mt-4 flex w-full max-w-3xl items-center justify-start gap-2 overflow-x-auto pb-1 md:flex-wrap md:justify-center">
                 {starterChips.map((chip) => (
                   <button
                     key={chip.label}
