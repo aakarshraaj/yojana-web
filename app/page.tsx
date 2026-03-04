@@ -112,26 +112,7 @@ const heroCopyByLanguage = {
   },
 } as const;
 
-const starterChipsByLanguage = {
-  en: [
-    { label: "Profile format", value: "State: \nAge: \nCategory: \nOccupation: \nFamily income: \nNeed:" },
-    { label: "Check eligibility", value: "Check my eligibility with this profile:\nState: \nAge: \nCategory: \nOccupation: \nFamily income: " },
-    { label: "Documents needed", value: "List required documents based on my profile:\nState: \nAge: \nCategory: \nOccupation: \nFamily income: " },
-    { label: "How to apply", value: "Give step-by-step apply process for best-fit schemes for this profile:\nState: \nAge: \nCategory: \nOccupation: \nFamily income: " },
-  ],
-  hi: [
-    { label: "प्रोफाइल प्रारूप", value: "राज्य: \nआयु: \nश्रेणी: \nपेशा: \nपरिवार की आय: \nज़रूरत:" },
-    { label: "पात्रता जांचें", value: "इस प्रोफाइल के आधार पर मेरी पात्रता जांचें:\nराज्य: \nआयु: \nश्रेणी: \nपेशा: \nपरिवार की आय: " },
-    { label: "आवश्यक दस्तावेज़", value: "मेरी प्रोफाइल के अनुसार आवश्यक दस्तावेज़ों की सूची दें:\nराज्य: \nआयु: \nश्रेणी: \nपेशा: \nपरिवार की आय: " },
-    { label: "आवेदन कैसे करें", value: "इस प्रोफाइल के लिए सबसे उपयुक्त योजनाओं की चरण-दर-चरण आवेदन प्रक्रिया बताएं:\nराज्य: \nआयु: \nश्रेणी: \nपेशा: \nपरिवार की आय: " },
-  ],
-  mr: [
-    { label: "प्रोफाइल स्वरूप", value: "राज्य: \nवय: \nप्रवर्ग: \nव्यवसाय: \nकुटुंब वार्षिक उत्पन्न: \nगरज:" },
-    { label: "पात्रता तपासा", value: "या प्रोफाइलवर आधारित माझी पात्रता तपासा:\nराज्य: \nवय: \nप्रवर्ग: \nव्यवसाय: \nकुटुंब वार्षिक उत्पन्न: " },
-    { label: "आवश्यक कागदपत्रे", value: "माझ्या प्रोफाइलनुसार आवश्यक कागदपत्रांची यादी द्या:\nराज्य: \nवय: \nप्रवर्ग: \nव्यवसाय: \nकुटुंब वार्षिक उत्पन्न: " },
-    { label: "अर्ज कसा करायचा", value: "या प्रोफाइलसाठी योग्य योजनांची टप्प्याटप्प्याने अर्ज प्रक्रिया द्या:\nराज्य: \nवय: \nप्रवर्ग: \nव्यवसाय: \nकुटुंब वार्षिक उत्पन्न: " },
-  ],
-} as const;
+
 
 const authStorageKey = "yojana-auth-session";
 const authPendingStorageKey = "yojana-auth-pending-message";
@@ -318,14 +299,7 @@ function MoonIcon({ className }: { className?: string }) {
   );
 }
 
-function GearIcon({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={className}>
-      <path d="M10.3 2.7h3.4l.5 2.1a7.8 7.8 0 0 1 1.7.7l1.9-1 2.4 2.4-1 1.9c.3.5.5 1.1.7 1.7l2.1.5v3.4l-2.1.5a7.8 7.8 0 0 1-.7 1.7l1 1.9-2.4 2.4-1.9-1a7.8 7.8 0 0 1-1.7.7l-.5 2.1h-3.4l-.5-2.1a7.8 7.8 0 0 1-1.7-.7l-1.9 1-2.4-2.4 1-1.9a7.8 7.8 0 0 1-.7-1.7l-2.1-.5v-3.4l2.1-.5a7.8 7.8 0 0 1 .7-1.7l-1-1.9 2.4-2.4 1.9 1a7.8 7.8 0 0 1 1.7-.7z" />
-      <circle cx="12" cy="12" r="3.2" />
-    </svg>
-  );
-}
+
 
 function UserIcon({ className }: { className?: string }) {
   return (
