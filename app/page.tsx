@@ -1023,9 +1023,9 @@ export default function Home() {
 
                     return (
                       <article key={message.id} id={message.id} className="transition-all duration-300 ease-out">
-                        <div className="mb-2 flex items-center gap-1.5">
-                          <JanInfraBadge className={`h-4 w-4 ${isDark ? "text-[var(--ji-brand)]/70" : "text-[var(--ji-brand)]"}`} />
-                          <p className={`text-[10px] font-semibold uppercase tracking-[0.16em] ${isDark ? "text-stone-500" : "text-stone-400"}`}>JanInfra</p>
+                        <div className="mb-2 flex items-center gap-2">
+                          <JanInfraBadge className={`h-5 w-5 ${isDark ? "text-[var(--ji-brand)]" : "text-[var(--ji-brand)]"}`} />
+                          <p className={`text-[13px] font-medium leading-[1] ${isDark ? "text-stone-300" : "text-slate-700"}`}>JanInfra</p>
                         </div>
 
                         {uncertain && null}
@@ -1062,8 +1062,11 @@ export default function Home() {
                         )}
 
                         {!isTypingThis && message.sources && message.sources.length > 0 && (
-                          <div className={`mt-4 border-t pt-3 ${isDark ? "border-[var(--ji-border)]" : "border-slate-100"}`}>
-                            <p className={`mb-2 text-[10px] font-semibold uppercase tracking-[0.15em] ${isDark ? "text-stone-500" : "text-stone-500"}`}>Sources</p>
+                          <div className={`mt-5 pt-4 border-t ${isDark ? "border-white/[0.06]" : "border-black/[0.04]"}`}>
+                            <div className="mb-3 flex items-center gap-2">
+                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={`h-4 w-4 ${isDark ? "text-[var(--ji-brand-muted)]" : "text-[var(--ji-brand-strong)]"}`} aria-hidden="true"><path d="M13.25 15.25L17.25 11.25M17.25 11.25L13.25 7.25M17.25 11.25H6.75M12 21C16.9706 21 21 16.9706 21 12C21 7.02944 16.9706 3 12 3C7.02944 3 3 7.02944 3 12C3 16.9706 7.02944 21 12 21Z" /></svg>
+                              <p className={`text-xs font-semibold uppercase tracking-[0.08em] ${isDark ? "text-stone-400" : "text-slate-500"}`}>Sources & Evidence</p>
+                            </div>
                             <div className="grid gap-2 sm:grid-cols-2">
                               {message.sources.map((source, idx) => {
                                 const host = extractHostname(source.url);
@@ -1075,11 +1078,11 @@ export default function Home() {
                                     href={source.url}
                                     target="_blank"
                                     rel="noreferrer"
-                                    className={`rounded-xl border p-3 transition-all duration-200 hover:-translate-y-0.5 ${isDark ? "border-[var(--ji-border)] bg-[var(--ji-surface)] hover:bg-[var(--ji-surface-muted)]" : "border-slate-200 bg-slate-50 hover:bg-slate-100"}`}
+                                    className={`group rounded-xl border p-3 transition-colors duration-200 ${isDark ? "border-[var(--ji-border)] bg-[var(--ji-surface)] hover:bg-white/[0.04]" : "border-slate-200 bg-white hover:bg-black/[0.02]"}`}
                                   >
-                                    <p className={`line-clamp-1 text-xs font-semibold ${isDark ? "text-stone-100" : "text-slate-800"}`}>[{idx + 1}] {source.title}</p>
-                                    <p className={`mt-0.5 text-[11px] ${isDark ? "text-stone-400" : "text-stone-500"}`}>{host} · {type}</p>
-                                    {source.snippet && <p className={`mt-1 line-clamp-2 text-xs ${isDark ? "text-stone-400" : "text-slate-600"}`}>{source.snippet}</p>}
+                                    <p className={`line-clamp-1 text-xs font-semibold transition-colors duration-200 ${isDark ? "text-stone-200 group-hover:text-sky-300" : "text-slate-800 group-hover:text-blue-700"}`}>[{idx + 1}] {source.title}</p>
+                                    <p className={`mt-0.5 text-[11px] ${isDark ? "text-stone-400" : "text-slate-500"}`}>{host} · {type}</p>
+                                    {source.snippet && <p className={`mt-1.5 line-clamp-2 text-xs leading-5 ${isDark ? "text-stone-400" : "text-slate-600"}`}>{source.snippet}</p>}
                                   </a>
                                 );
                               })}
