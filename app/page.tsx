@@ -46,11 +46,46 @@ type Section = {
   content: string;
 };
 
-const composerPlaceholders = {
-  en: "Ask anything about schemes, benefits, eligibility, or documents...",
-  hi: "योजनाओं, लाभ, पात्रता या दस्तावेज़ों के बारे में कुछ भी पूछें...",
-  mr: "योजना, लाभ, पात्रता किंवा कागदपत्रांविषयी काहीही विचारा...",
-  bn: "স্কিম, সুবিধা, যোগ্যতা বা নথি সম্পর্কে যা খুশি জিজ্ঞাসা করুন...",
+const rotatingExamples = {
+  en: [
+    "e.g. I'm 28, from UP, OBC, farmer, need housing loan",
+    "e.g. 35-year-old woman, Maharashtra, looking for education scholarship",
+    "e.g. Senior citizen, 62, Tamil Nadu, looking for pension scheme",
+    "e.g. SC category, Bihar, daily wage worker, family income ₹50,000",
+    "e.g. Student, 19, Kerala, looking for merit scholarships",
+    "e.g. Widow, 45, Rajasthan, need livelihood support",
+  ],
+  hi: [
+    "जैसे: मैं 28 साल, UP से, OBC, किसान, आवास ऋण चाहिए",
+    "जैसे: 35 साल की महिला, महाराष्ट्र, शिक्षा छात्रवृत्ति चाहिए",
+    "जैसे: वरिष्ठ नागरिक, 62, तमिलनाडु, पेंशन योजना चाहिए",
+    "जैसे: SC वर्ग, बिहार, दिहाड़ी मज़दूर, पारिवारिक आय ₹50,000",
+    "जैसे: छात्र, 19 साल, केरल, मेरिट स्कॉलरशिप चाहिए",
+    "जैसे: विधवा, 45, राजस्थान, आजीविका सहायता चाहिए",
+  ],
+  mr: [
+    "उदा. मी 28, UP मधून, OBC, शेतकरी, गृहकर्ज हवे",
+    "उदा. 35 वर्षांची महिला, महाराष्ट्र, शिक्षण शिष्यवृत्ती हवी",
+    "उदा. ज्येष्ठ नागरिक, 62, तामिळनाडू, पेन्शन योजना हवी",
+    "उदा. SC प्रवर्ग, बिहार, रोजंदारी कामगार, कौटुंबिक उत्पन्न ₹50,000",
+    "उदा. विद्यार्थी, 19, केरळ, मेरिट स्कॉलरशिप हवी",
+    "उदा. विधवा, 45, राजस्थान, उपजीविका सहाय्य हवे",
+  ],
+  bn: [
+    "যেমন: আমি ২৮, UP থেকে, OBC, কৃষক, আবাসন ঋণ চাই",
+    "যেমন: ৩৫ বছরের মহিলা, মহারাষ্ট্র, শিক্ষা বৃত্তি চাই",
+    "যেমন: প্রবীণ নাগরিক, ৬২, তামিলনাড়ু, পেনশন স্কিম চাই",
+    "যেমন: SC শ্রেণী, বিহার, দিনমজুর, পরিবারের আয় ₹৫০,০০০",
+    "যেমন: ছাত্র, ১৯, কেরালা, মেরিট স্কলারশিপ চাই",
+    "যেমন: বিধবা, ৪৫, রাজস্থান, জীবিকা সহায়তা চাই",
+  ],
+} as const;
+
+const followUpPlaceholders = {
+  en: "Need more details? Ask here…",
+  hi: "और जानकारी चाहिए? यहाँ पूछें…",
+  mr: "अधिक माहिती हवी? इथे विचारा…",
+  bn: "আরও তথ্য চাই? এখানে জিজ্ঞাসা করুন…",
 } as const;
 const languageOptions = [
   { value: "en", label: "English", short: "EN" },
@@ -300,8 +335,8 @@ function UserIcon({ className }: { className?: string }) {
 function JanInfraBadge({ className, style }: { className?: string; style?: React.CSSProperties }) {
   return (
     <svg viewBox="0 0 237 231" fill="none" xmlns="http://www.w3.org/2000/svg" className={className} style={style} aria-label="JanInfra badge">
-      <path d="M28.2674 38.5563C50.3524 11.6561 87.2779 -5.59704 144.542 3.4072L144.818 3.45058L145.09 3.51088C173.757 9.85931 231.137 41.5445 235.981 117.543C236.299 122.522 232.525 126.817 227.552 127.135C222.579 127.453 218.29 123.674 217.973 118.694C213.81 53.3864 165.023 26.5513 141.457 21.2141C89.7218 13.1542 59.6201 28.8217 42.2067 50.0317C24.343 71.7903 18.6293 100.86 19.0686 121.233C24.6694 167.004 46.2432 190.387 70.1066 201.879C94.3303 213.545 122.035 213.458 140.387 209.607C150.235 205.302 153.169 200.78 153.974 197.667C154.879 194.17 153.964 189.25 149.922 182.786C141.811 169.817 124.782 156.626 112.155 149.781C91.6891 138.686 80.9025 126.684 80.5419 113.624C80.1807 100.533 90.3668 92.2017 97.2744 88.6315L97.5416 88.4933L97.817 88.3734C115.395 80.7246 131.735 79.9667 146.37 84.3088C160.835 88.601 172.911 97.6546 182.606 108.455C201.821 129.857 213.078 159.647 215.985 180.09C216.688 185.03 213.258 189.605 208.325 190.308C203.391 191.012 198.823 187.577 198.12 182.637C195.639 165.183 185.655 138.88 169.186 120.535C161.04 111.461 151.663 104.727 141.243 101.635C131.064 98.6146 119.181 98.8509 105.309 104.816C100.727 107.259 98.511 110.6 98.5806 113.125C98.6524 115.726 101.211 123.3 120.746 133.89C134.811 141.515 154.812 156.559 165.216 173.195C170.431 181.533 174.145 191.758 171.443 202.199C168.662 212.948 159.879 221.009 146.64 226.585L145.88 226.906L145.073 227.082C123.939 231.718 91.4371 232.204 62.2852 218.164C32.4815 203.811 7.31041 174.787 1.09964 122.959L1.04971 122.539L1.03869 122.117C0.437498 98.8384 6.72275 64.7984 28.2674 38.5563ZM118.426 37.8203C140.289 38.2129 160.419 47.6458 172.418 56.1595C176.484 59.0444 177.445 64.6834 174.564 68.7548C171.683 72.8262 166.052 73.7881 161.986 70.9033C152.055 63.8566 135.381 56.1977 118.102 55.8875C101.584 55.591 83.9754 61.9259 70.1374 83.8596C64.0648 95.5671 59.4141 113.685 63.9799 130.494C68.3497 146.582 81.7578 163.614 116.457 172.618C121.281 173.869 124.178 178.799 122.928 183.63C121.678 188.46 116.755 191.361 111.931 190.11C72.3433 179.838 52.9809 158.848 46.5675 135.238C40.3904 112.497 46.8212 89.4129 54.3302 75.1333L54.488 74.8333L54.6679 74.5458C72.0818 46.7124 95.8718 37.4154 118.426 37.8203Z" fill="currentColor"/>
-      <path d="M27.4941 37.9217C49.8362 10.7083 87.1364 -6.63208 144.697 2.41882L144.974 2.46277L145.004 2.46765L145.034 2.47448L145.307 2.53405L146.685 2.85339C176.054 9.95547 232.174 42.0981 236.979 117.478C237.332 123.008 233.141 127.779 227.616 128.133C222.091 128.486 217.327 124.287 216.975 118.758C212.85 54.0505 164.552 27.4833 141.265 22.1962C89.8512 14.1963 60.1327 29.7729 42.9794 50.6659C25.3272 72.1669 19.6428 100.946 20.0673 121.157C25.6378 166.578 47.0084 189.645 70.54 200.978C94.4674 212.502 121.875 212.447 140.076 208.649C149.688 204.427 152.307 200.117 153.006 197.416C153.812 194.301 153.05 189.674 149.074 183.316C141.09 170.55 124.226 157.462 111.679 150.66C91.1636 139.539 79.9185 127.291 79.5419 113.651C79.1647 99.9737 89.7947 91.3717 96.8154 87.743L97.1122 87.5897L97.1425 87.576L97.4179 87.4559L98.2499 87.0985C115.712 79.6975 132.009 79.0051 146.654 83.3505C161.344 87.7093 173.569 96.8908 183.351 107.786C202.717 129.358 214.045 159.341 216.976 179.949C217.755 185.435 213.947 190.516 208.466 191.298C202.985 192.079 197.911 188.264 197.131 182.778C194.672 165.489 184.759 139.379 168.442 121.203C160.382 112.225 151.154 105.619 140.958 102.594C131.03 99.6481 119.402 99.8544 105.747 105.717C101.328 108.083 99.5259 111.136 99.58 113.098C99.6361 115.124 101.746 122.452 121.223 133.011C135.367 140.679 155.532 155.826 166.063 172.665C171.342 181.106 175.212 191.624 172.411 202.449C169.521 213.617 160.42 221.866 147.028 227.507L146.268 227.827L146.184 227.863L145.286 228.058L145.287 228.059C123.998 232.729 91.2565 233.227 61.8515 219.065C31.7225 204.555 6.35537 175.225 0.106387 123.078L0.0565822 122.657L0.0507229 122.611L0.0497463 122.565L0.0390041 122.142C-0.566302 98.7051 5.75253 64.4038 27.4941 37.9217ZM144.387 4.39538C87.4196 -4.56217 50.8678 12.6035 29.04 39.1903C7.69235 65.1924 1.44095 98.9717 2.03803 122.091L2.04779 122.468L2.09272 122.84L2.24018 124.043C8.65505 174.797 33.4707 203.178 62.7187 217.264C91.6174 231.181 123.879 230.707 144.858 226.105L145.577 225.947L146.252 225.664C159.337 220.152 167.802 212.277 170.475 201.948C173.076 191.892 169.519 181.96 164.368 173.724C154.091 157.292 134.255 142.351 120.269 134.769C100.678 124.149 97.6687 116.329 97.581 113.152C97.4961 110.069 100.117 106.451 104.839 103.933L104.876 103.914L104.914 103.897C118.984 97.8466 131.107 97.584 141.527 100.676C152.172 103.834 161.699 110.698 169.931 119.867C186.551 138.381 196.605 164.877 199.11 182.496C199.735 186.89 203.798 189.943 208.184 189.318C212.569 188.693 215.62 184.626 214.995 180.231C212.112 159.954 200.924 130.357 181.862 109.123C172.252 98.4184 160.326 89.493 146.085 85.2675C131.694 80.9975 115.596 81.7274 98.2158 89.2899L97.9765 89.3934L97.7333 89.5194C90.939 93.0311 81.1969 101.092 81.5419 113.597C81.8865 126.076 92.2152 137.833 112.632 148.901C125.338 155.79 142.532 169.084 150.769 182.256C154.878 188.826 155.946 194.038 154.942 197.917C154.032 201.434 150.798 206.147 140.788 210.523L140.693 210.564L140.593 210.586C122.087 214.469 94.1464 214.567 69.6728 202.78C45.4858 191.132 23.716 167.444 18.0761 121.354L18.0703 121.305L18.0683 121.255C17.6256 100.724 23.3743 71.3943 41.4335 49.3973C59.1029 27.8755 89.5777 12.1192 141.61 20.2255L141.644 20.2313L141.678 20.2391C165.533 25.6421 214.771 52.7495 218.971 118.63C219.253 123.059 223.068 126.419 227.488 126.137C231.909 125.854 235.266 122.036 234.983 117.606C230.176 42.1872 173.253 10.772 144.874 4.48718L144.634 4.43347L144.387 4.39538ZM118.443 36.8202C140.561 37.2173 160.884 46.7487 172.997 55.3436C177.513 58.548 178.579 64.8104 175.38 69.3319C172.18 73.8542 165.924 74.9236 161.407 71.7186C151.591 64.7534 135.108 57.1933 118.084 56.8876C101.905 56.5971 84.6441 62.7649 71.0068 84.3563C65.0173 95.9225 60.4703 113.757 64.9453 130.232C69.2025 145.905 82.2817 162.717 116.708 171.649C122.067 173.04 125.284 178.516 123.896 183.88C122.508 189.244 117.039 192.469 111.68 191.078C71.8216 180.736 52.1291 159.527 45.6025 135.5C39.3384 112.439 45.8614 89.0899 53.4453 74.6678L53.6035 74.3671L53.6201 74.3348L53.6406 74.3026L53.8203 74.0155C71.4307 45.868 95.5586 36.4094 118.443 36.8202ZM118.407 38.8202C96.1845 38.4213 72.7328 47.5569 55.5156 75.076L55.3525 75.3368L55.2148 75.5985C47.7808 89.7356 41.442 112.555 47.5322 134.975C53.8324 158.169 72.8652 178.94 112.183 189.141C116.47 190.254 120.848 187.675 121.96 183.379C123.071 179.082 120.494 174.699 116.206 173.586C81.2342 164.512 67.4972 147.259 63.0146 130.757C58.3627 113.631 63.1035 95.2493 69.2499 83.3993L69.2695 83.3612L69.2919 83.326C83.327 61.0801 101.273 54.5851 118.12 54.8876C135.653 55.2025 152.519 62.9598 162.564 70.0878C166.179 72.6524 171.185 71.7972 173.747 68.1766C176.309 64.5553 175.455 59.5398 171.84 56.9745C159.955 48.542 140.016 39.2082 118.407 38.8202Z" fill="currentColor"/>
+      <path d="M28.2674 38.5563C50.3524 11.6561 87.2779 -5.59704 144.542 3.4072L144.818 3.45058L145.09 3.51088C173.757 9.85931 231.137 41.5445 235.981 117.543C236.299 122.522 232.525 126.817 227.552 127.135C222.579 127.453 218.29 123.674 217.973 118.694C213.81 53.3864 165.023 26.5513 141.457 21.2141C89.7218 13.1542 59.6201 28.8217 42.2067 50.0317C24.343 71.7903 18.6293 100.86 19.0686 121.233C24.6694 167.004 46.2432 190.387 70.1066 201.879C94.3303 213.545 122.035 213.458 140.387 209.607C150.235 205.302 153.169 200.78 153.974 197.667C154.879 194.17 153.964 189.25 149.922 182.786C141.811 169.817 124.782 156.626 112.155 149.781C91.6891 138.686 80.9025 126.684 80.5419 113.624C80.1807 100.533 90.3668 92.2017 97.2744 88.6315L97.5416 88.4933L97.817 88.3734C115.395 80.7246 131.735 79.9667 146.37 84.3088C160.835 88.601 172.911 97.6546 182.606 108.455C201.821 129.857 213.078 159.647 215.985 180.09C216.688 185.03 213.258 189.605 208.325 190.308C203.391 191.012 198.823 187.577 198.12 182.637C195.639 165.183 185.655 138.88 169.186 120.535C161.04 111.461 151.663 104.727 141.243 101.635C131.064 98.6146 119.181 98.8509 105.309 104.816C100.727 107.259 98.511 110.6 98.5806 113.125C98.6524 115.726 101.211 123.3 120.746 133.89C134.811 141.515 154.812 156.559 165.216 173.195C170.431 181.533 174.145 191.758 171.443 202.199C168.662 212.948 159.879 221.009 146.64 226.585L145.88 226.906L145.073 227.082C123.939 231.718 91.4371 232.204 62.2852 218.164C32.4815 203.811 7.31041 174.787 1.09964 122.959L1.04971 122.539L1.03869 122.117C0.437498 98.8384 6.72275 64.7984 28.2674 38.5563ZM118.426 37.8203C140.289 38.2129 160.419 47.6458 172.418 56.1595C176.484 59.0444 177.445 64.6834 174.564 68.7548C171.683 72.8262 166.052 73.7881 161.986 70.9033C152.055 63.8566 135.381 56.1977 118.102 55.8875C101.584 55.591 83.9754 61.9259 70.1374 83.8596C64.0648 95.5671 59.4141 113.685 63.9799 130.494C68.3497 146.582 81.7578 163.614 116.457 172.618C121.281 173.869 124.178 178.799 122.928 183.63C121.678 188.46 116.755 191.361 111.931 190.11C72.3433 179.838 52.9809 158.848 46.5675 135.238C40.3904 112.497 46.8212 89.4129 54.3302 75.1333L54.488 74.8333L54.6679 74.5458C72.0818 46.7124 95.8718 37.4154 118.426 37.8203Z" fill="currentColor" />
+      <path d="M27.4941 37.9217C49.8362 10.7083 87.1364 -6.63208 144.697 2.41882L144.974 2.46277L145.004 2.46765L145.034 2.47448L145.307 2.53405L146.685 2.85339C176.054 9.95547 232.174 42.0981 236.979 117.478C237.332 123.008 233.141 127.779 227.616 128.133C222.091 128.486 217.327 124.287 216.975 118.758C212.85 54.0505 164.552 27.4833 141.265 22.1962C89.8512 14.1963 60.1327 29.7729 42.9794 50.6659C25.3272 72.1669 19.6428 100.946 20.0673 121.157C25.6378 166.578 47.0084 189.645 70.54 200.978C94.4674 212.502 121.875 212.447 140.076 208.649C149.688 204.427 152.307 200.117 153.006 197.416C153.812 194.301 153.05 189.674 149.074 183.316C141.09 170.55 124.226 157.462 111.679 150.66C91.1636 139.539 79.9185 127.291 79.5419 113.651C79.1647 99.9737 89.7947 91.3717 96.8154 87.743L97.1122 87.5897L97.1425 87.576L97.4179 87.4559L98.2499 87.0985C115.712 79.6975 132.009 79.0051 146.654 83.3505C161.344 87.7093 173.569 96.8908 183.351 107.786C202.717 129.358 214.045 159.341 216.976 179.949C217.755 185.435 213.947 190.516 208.466 191.298C202.985 192.079 197.911 188.264 197.131 182.778C194.672 165.489 184.759 139.379 168.442 121.203C160.382 112.225 151.154 105.619 140.958 102.594C131.03 99.6481 119.402 99.8544 105.747 105.717C101.328 108.083 99.5259 111.136 99.58 113.098C99.6361 115.124 101.746 122.452 121.223 133.011C135.367 140.679 155.532 155.826 166.063 172.665C171.342 181.106 175.212 191.624 172.411 202.449C169.521 213.617 160.42 221.866 147.028 227.507L146.268 227.827L146.184 227.863L145.286 228.058L145.287 228.059C123.998 232.729 91.2565 233.227 61.8515 219.065C31.7225 204.555 6.35537 175.225 0.106387 123.078L0.0565822 122.657L0.0507229 122.611L0.0497463 122.565L0.0390041 122.142C-0.566302 98.7051 5.75253 64.4038 27.4941 37.9217ZM144.387 4.39538C87.4196 -4.56217 50.8678 12.6035 29.04 39.1903C7.69235 65.1924 1.44095 98.9717 2.03803 122.091L2.04779 122.468L2.09272 122.84L2.24018 124.043C8.65505 174.797 33.4707 203.178 62.7187 217.264C91.6174 231.181 123.879 230.707 144.858 226.105L145.577 225.947L146.252 225.664C159.337 220.152 167.802 212.277 170.475 201.948C173.076 191.892 169.519 181.96 164.368 173.724C154.091 157.292 134.255 142.351 120.269 134.769C100.678 124.149 97.6687 116.329 97.581 113.152C97.4961 110.069 100.117 106.451 104.839 103.933L104.876 103.914L104.914 103.897C118.984 97.8466 131.107 97.584 141.527 100.676C152.172 103.834 161.699 110.698 169.931 119.867C186.551 138.381 196.605 164.877 199.11 182.496C199.735 186.89 203.798 189.943 208.184 189.318C212.569 188.693 215.62 184.626 214.995 180.231C212.112 159.954 200.924 130.357 181.862 109.123C172.252 98.4184 160.326 89.493 146.085 85.2675C131.694 80.9975 115.596 81.7274 98.2158 89.2899L97.9765 89.3934L97.7333 89.5194C90.939 93.0311 81.1969 101.092 81.5419 113.597C81.8865 126.076 92.2152 137.833 112.632 148.901C125.338 155.79 142.532 169.084 150.769 182.256C154.878 188.826 155.946 194.038 154.942 197.917C154.032 201.434 150.798 206.147 140.788 210.523L140.693 210.564L140.593 210.586C122.087 214.469 94.1464 214.567 69.6728 202.78C45.4858 191.132 23.716 167.444 18.0761 121.354L18.0703 121.305L18.0683 121.255C17.6256 100.724 23.3743 71.3943 41.4335 49.3973C59.1029 27.8755 89.5777 12.1192 141.61 20.2255L141.644 20.2313L141.678 20.2391C165.533 25.6421 214.771 52.7495 218.971 118.63C219.253 123.059 223.068 126.419 227.488 126.137C231.909 125.854 235.266 122.036 234.983 117.606C230.176 42.1872 173.253 10.772 144.874 4.48718L144.634 4.43347L144.387 4.39538ZM118.443 36.8202C140.561 37.2173 160.884 46.7487 172.997 55.3436C177.513 58.548 178.579 64.8104 175.38 69.3319C172.18 73.8542 165.924 74.9236 161.407 71.7186C151.591 64.7534 135.108 57.1933 118.084 56.8876C101.905 56.5971 84.6441 62.7649 71.0068 84.3563C65.0173 95.9225 60.4703 113.757 64.9453 130.232C69.2025 145.905 82.2817 162.717 116.708 171.649C122.067 173.04 125.284 178.516 123.896 183.88C122.508 189.244 117.039 192.469 111.68 191.078C71.8216 180.736 52.1291 159.527 45.6025 135.5C39.3384 112.439 45.8614 89.0899 53.4453 74.6678L53.6035 74.3671L53.6201 74.3348L53.6406 74.3026L53.8203 74.0155C71.4307 45.868 95.5586 36.4094 118.443 36.8202ZM118.407 38.8202C96.1845 38.4213 72.7328 47.5569 55.5156 75.076L55.3525 75.3368L55.2148 75.5985C47.7808 89.7356 41.442 112.555 47.5322 134.975C53.8324 158.169 72.8652 178.94 112.183 189.141C116.47 190.254 120.848 187.675 121.96 183.379C123.071 179.082 120.494 174.699 116.206 173.586C81.2342 164.512 67.4972 147.259 63.0146 130.757C58.3627 113.631 63.1035 95.2493 69.2499 83.3993L69.2695 83.3612L69.2919 83.326C83.327 61.0801 101.273 54.5851 118.12 54.8876C135.653 55.2025 152.519 62.9598 162.564 70.0878C166.179 72.6524 171.185 71.7972 173.747 68.1766C176.309 64.5553 175.455 59.5398 171.84 56.9745C159.955 48.542 140.016 39.2082 118.407 38.8202Z" fill="currentColor" />
     </svg>
   );
 }
@@ -386,6 +421,8 @@ export default function Home() {
   const [typedAssistant, setTypedAssistant] = useState<Record<string, string>>({});
   const [typingMessageId, setTypingMessageId] = useState<string | null>(null);
   const [voiceErrorToast, setVoiceErrorToast] = useState<string | null>(null);
+  const [exampleIndex, setExampleIndex] = useState(0);
+  const [placeholderFading, setPlaceholderFading] = useState(false);
 
   const nextMessageId = useRef(1);
   const googleRedirectTimeoutRef = useRef<number | null>(null);
@@ -396,10 +433,12 @@ export default function Home() {
   const isDark = theme === "dark";
   const brandColor = "var(--ji-brand)";
   const userLabel = session?.user?.displayName || session?.user?.email?.split("@")[0] || "";
-  const composerPlaceholder = composerPlaceholders[language as keyof typeof composerPlaceholders] || composerPlaceholders.en;
-  const starterChips = starterChipsByLanguage[language as keyof typeof starterChipsByLanguage] || starterChipsByLanguage.en;
   const heroCopy = heroCopyByLanguage[language as keyof typeof heroCopyByLanguage] || heroCopyByLanguage.en;
   const hasConversation = useMemo(() => messages.some((m) => m.role === "user"), [messages]);
+  const examples = rotatingExamples[language as keyof typeof rotatingExamples] || rotatingExamples.en;
+  const composerPlaceholder = hasConversation
+    ? (followUpPlaceholders[language as keyof typeof followUpPlaceholders] || followUpPlaceholders.en)
+    : examples[exampleIndex % examples.length];
 
   const hasUncertainEvidence = useMemo(
     () => messages.some((m) => m.role === "assistant" && (!m.sources || m.sources.length === 0)),
@@ -605,6 +644,18 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
+    if (hasConversation) return;
+    const interval = window.setInterval(() => {
+      setPlaceholderFading(true);
+      window.setTimeout(() => {
+        setExampleIndex((prev) => (prev + 1) % examples.length);
+        setPlaceholderFading(false);
+      }, 300);
+    }, 3500);
+    return () => window.clearInterval(interval);
+  }, [hasConversation, examples.length]);
+
+  useEffect(() => {
     const latest = messages[messages.length - 1];
     if (!latest || latest.role !== "assistant") return;
     if (animatedAssistantIdsRef.current.has(latest.id)) return;
@@ -728,9 +779,8 @@ export default function Home() {
   const renderComposer = () => (
     <div className="w-full">
       <div
-        className={`rounded-[1.45rem] border px-3 pb-3 pt-3 shadow-[0_8px_28px_rgba(15,23,42,0.08)] transition-all duration-200 md:rounded-[1.65rem] md:px-4 ${
-          isDark ? "border-[var(--ji-border)] bg-[var(--ji-surface)] focus-within:border-[var(--ji-border-strong)]" : "border-slate-200 bg-white focus-within:border-slate-300"
-        }`}
+        className={`rounded-[1.45rem] border px-3 pb-3 pt-3 shadow-[0_8px_28px_rgba(15,23,42,0.08)] transition-all duration-200 md:rounded-[1.65rem] md:px-4 ${isDark ? "border-[var(--ji-border)] bg-[var(--ji-surface)] focus-within:border-[var(--ji-border-strong)]" : "border-slate-200 bg-white focus-within:border-slate-300"
+          }`}
       >
         <textarea
           ref={textareaRef}
@@ -747,25 +797,22 @@ export default function Home() {
               void sendMessage();
             }
           }}
-          className={`w-full min-h-[52px] resize-none overflow-hidden bg-transparent text-[17px] leading-7 outline-none placeholder:opacity-55 md:min-h-[60px] md:text-[18px] ${
-            isDark ? "text-stone-100 placeholder:text-[var(--ji-placeholder)]" : "text-slate-900 placeholder:text-[var(--ji-placeholder)]"
-          }`}
+          className={`w-full min-h-[52px] resize-none overflow-hidden bg-transparent text-[17px] leading-7 outline-none md:min-h-[60px] md:text-[18px] placeholder:transition-opacity placeholder:duration-300 ${placeholderFading ? "placeholder:opacity-0" : "placeholder:opacity-55"} ${isDark ? "text-stone-100 placeholder:text-[var(--ji-placeholder)]" : "text-slate-900 placeholder:text-[var(--ji-placeholder)]"
+            }`}
           placeholder={composerPlaceholder}
         />
-          <div className="mt-3 flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2 overflow-x-auto pb-1 pr-1">
+        <div className="mt-3 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 pr-1">
             <div
-              className={`relative inline-flex h-9 items-center rounded-full border px-1 ${
-                isDark ? "border-[var(--ji-border)] bg-[var(--ji-surface)]" : "border-slate-200 bg-white"
-              }`}
+              className={`relative inline-flex h-9 items-center rounded-full border px-1 ${isDark ? "border-[var(--ji-border)] bg-[var(--ji-surface)]" : "border-slate-200 bg-white"
+                }`}
               aria-label="Response language"
             >
               <select
                 value={language}
                 onChange={(e) => setLanguage(e.target.value)}
-                className={`h-full w-auto appearance-none bg-transparent pl-2.5 pr-7 text-xs outline-none ${
-                  isDark ? "text-stone-200" : "text-slate-700"
-                }`}
+                className={`h-full w-auto appearance-none bg-transparent pl-2.5 pr-7 text-xs outline-none ${isDark ? "text-stone-200" : "text-slate-700"
+                  }`}
                 aria-label="Select language"
               >
                 {languageOptions.map((lang) => (
@@ -786,48 +833,46 @@ export default function Home() {
               </svg>
             </div>
           </div>
-            <div
-              className={`inline-flex items-center gap-1 rounded-full border p-1 ${
-                isDark ? "border-[var(--ji-border)] bg-[var(--ji-surface-muted)]" : "border-slate-200 bg-slate-50/80"
+          <div
+            className={`inline-flex items-center gap-1 rounded-full border p-1 ${isDark ? "border-[var(--ji-border)] bg-[var(--ji-surface-muted)]" : "border-slate-200 bg-slate-50/80"
               }`}
-            >
-              <VoiceRecorder
-                language={language}
-                disabled={loading}
-                isDark={isDark}
-                embedded
-                onError={(message) => {
-                  setVoiceErrorToast(message);
-                  window.setTimeout(() => setVoiceErrorToast(null), 3000);
-                }}
-                onTranscription={(text) => {
-                  const normalized = text.trim();
-                  if (!normalized) return;
-                  setInput((prev) => (prev.trim().length ? `${prev.trimEnd()} ${normalized}` : normalized));
-                }}
-              />
-              {(loading || input.trim().length > 0) && (
-                <>
-                  <span className={`h-6 w-px ${isDark ? "bg-[var(--ji-border)]" : "bg-slate-200"}`} />
-                  <button
-                    onClick={() => void sendMessage()}
-                    disabled={loading || input.trim().length === 0}
-                    className={`inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-white shadow-sm transition-all duration-200 ${
-                      input.trim().length === 0 || loading
-                        ? "bg-transparent text-[var(--ji-brand)] shadow-none"
-                        : "bg-[var(--ji-brand)] hover:bg-[var(--ji-brand-strong)] hover:scale-[1.02]"
+          >
+            <VoiceRecorder
+              language={language}
+              disabled={loading}
+              isDark={isDark}
+              embedded
+              onError={(message) => {
+                setVoiceErrorToast(message);
+                window.setTimeout(() => setVoiceErrorToast(null), 3000);
+              }}
+              onTranscription={(text) => {
+                const normalized = text.trim();
+                if (!normalized) return;
+                setInput((prev) => (prev.trim().length ? `${prev.trimEnd()} ${normalized}` : normalized));
+              }}
+            />
+            {(loading || input.trim().length > 0) && (
+              <>
+                <span className={`h-6 w-px ${isDark ? "bg-[var(--ji-border)]" : "bg-slate-200"}`} />
+                <button
+                  onClick={() => void sendMessage()}
+                  disabled={loading || input.trim().length === 0}
+                  className={`inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-white shadow-sm transition-all duration-200 ${input.trim().length === 0 || loading
+                    ? "bg-transparent text-[var(--ji-brand)] shadow-none"
+                    : "bg-[var(--ji-brand)] hover:bg-[var(--ji-brand-strong)] hover:scale-[1.02]"
                     } cursor-pointer disabled:cursor-not-allowed disabled:opacity-90`}
-                  >
-                    {loading ? (
-                      <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-r-transparent" />
-                    ) : (
-                      "↑"
-                    )}
-                  </button>
-                </>
-              )}
-            </div>
+                >
+                  {loading ? (
+                    <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-r-transparent" />
+                  ) : (
+                    "↑"
+                  )}
+                </button>
+              </>
+            )}
           </div>
+        </div>
       </div>
     </div>
   );
@@ -885,63 +930,61 @@ export default function Home() {
                       aria-label="Close account menu"
                     />
                     <div className={`fixed left-3 right-3 top-[76px] z-50 rounded-2xl border p-2 shadow-xl md:absolute md:left-auto md:right-0 md:top-full md:mt-2 md:w-56 ${isDark ? "border-[var(--ji-border)] bg-[var(--ji-surface)]" : "border-slate-200 bg-white"}`}>
-                    <div className={`mb-2 mt-1 border-t pt-2 ${isDark ? "border-[var(--ji-border)]" : "border-slate-200"}`}>
-                      <p className={`mb-1 px-1 text-[11px] uppercase tracking-[0.12em] ${isDark ? "text-stone-500" : "text-slate-500"}`}>Language</p>
-                      <div
-                        className={`relative inline-flex h-10 w-full items-center rounded-full border ${
-                          isDark ? "border-[var(--ji-border)] bg-[var(--ji-surface)]" : "border-slate-200 bg-white"
-                        }`}
-                      >
-                        <select
-                          value={language}
-                          onChange={(e) => setLanguage(e.target.value)}
-                          className={`h-full w-full appearance-none bg-transparent pl-3 pr-9 text-sm outline-none ${
-                            isDark ? "text-stone-200" : "text-slate-700"
-                          }`}
-                          aria-label="Select language"
+                      <div className={`mb-2 mt-1 border-t pt-2 ${isDark ? "border-[var(--ji-border)]" : "border-slate-200"}`}>
+                        <p className={`mb-1 px-1 text-[11px] uppercase tracking-[0.12em] ${isDark ? "text-stone-500" : "text-slate-500"}`}>Language</p>
+                        <div
+                          className={`relative inline-flex h-10 w-full items-center rounded-full border ${isDark ? "border-[var(--ji-border)] bg-[var(--ji-surface)]" : "border-slate-200 bg-white"
+                            }`}
                         >
-                          {languageOptions.map((lang) => (
-                            <option key={`menu-${lang.value}`} value={lang.value}>
-                              {lang.short}
-                            </option>
-                          ))}
-                        </select>
-                        <svg
-                          viewBox="0 0 20 20"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="1.8"
-                          className={`pointer-events-none absolute right-3 h-3.5 w-3.5 ${isDark ? "text-stone-400" : "text-slate-500"}`}
-                          aria-hidden="true"
-                        >
-                          <path d="M5 7.5 10 12.5 15 7.5" />
-                        </svg>
+                          <select
+                            value={language}
+                            onChange={(e) => setLanguage(e.target.value)}
+                            className={`h-full w-full appearance-none bg-transparent pl-3 pr-9 text-sm outline-none ${isDark ? "text-stone-200" : "text-slate-700"
+                              }`}
+                            aria-label="Select language"
+                          >
+                            {languageOptions.map((lang) => (
+                              <option key={`menu-${lang.value}`} value={lang.value}>
+                                {lang.short}
+                              </option>
+                            ))}
+                          </select>
+                          <svg
+                            viewBox="0 0 20 20"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="1.8"
+                            className={`pointer-events-none absolute right-3 h-3.5 w-3.5 ${isDark ? "text-stone-400" : "text-slate-500"}`}
+                            aria-hidden="true"
+                          >
+                            <path d="M5 7.5 10 12.5 15 7.5" />
+                          </svg>
+                        </div>
                       </div>
-                    </div>
-                    {authEnabled && session && (
-                      <button
-                        onClick={() => {
-                          handleSignOut();
-                          setShowSettingsMenu(false);
-                        }}
-                        className={`w-full rounded-lg px-3 py-2 text-left text-sm ${isDark ? "text-stone-200 hover:bg-[var(--ji-surface-muted)]" : "text-slate-800 hover:bg-slate-50"}`}
-                      >
-                        Sign out
-                      </button>
-                    )}
-                    {authEnabled && !session && (
-                      <button
-                        onClick={() => {
-                          setAuthError(null);
-                          setAuthNotice(null);
-                          setShowAuthModal(true);
-                          setShowSettingsMenu(false);
-                        }}
-                        className={`w-full rounded-lg px-3 py-2 text-left text-sm ${isDark ? "text-stone-200 hover:bg-[var(--ji-surface-muted)]" : "text-slate-800 hover:bg-slate-50"}`}
-                      >
-                        Sign in
-                      </button>
-                    )}
+                      {authEnabled && session && (
+                        <button
+                          onClick={() => {
+                            handleSignOut();
+                            setShowSettingsMenu(false);
+                          }}
+                          className={`w-full rounded-lg px-3 py-2 text-left text-sm ${isDark ? "text-stone-200 hover:bg-[var(--ji-surface-muted)]" : "text-slate-800 hover:bg-slate-50"}`}
+                        >
+                          Sign out
+                        </button>
+                      )}
+                      {authEnabled && !session && (
+                        <button
+                          onClick={() => {
+                            setAuthError(null);
+                            setAuthNotice(null);
+                            setShowAuthModal(true);
+                            setShowSettingsMenu(false);
+                          }}
+                          className={`w-full rounded-lg px-3 py-2 text-left text-sm ${isDark ? "text-stone-200 hover:bg-[var(--ji-surface-muted)]" : "text-slate-800 hover:bg-slate-50"}`}
+                        >
+                          Sign in
+                        </button>
+                      )}
                     </div>
                   </>
                 )}
@@ -958,17 +1001,7 @@ export default function Home() {
                 </p>
               </div>
               <div className="mt-2 w-full max-w-3xl">{renderComposer()}</div>
-              <div className="mt-4 flex w-full max-w-3xl items-center justify-start gap-2 overflow-x-auto pb-1 md:flex-wrap md:justify-center">
-                {starterChips.map((chip) => (
-                  <button
-                    key={chip.label}
-                    onClick={() => setInput(chip.value)}
-                    className={`shrink-0 rounded-full border px-3 py-1.5 text-xs ${isDark ? "border-[var(--ji-border)] bg-[var(--ji-surface)]" : "border-slate-200 bg-white"}`}
-                  >
-                    {chip.label}
-                  </button>
-                ))}
-              </div>
+
             </div>
           ) : (
             <div className="relative flex min-h-0 flex-1 flex-col">
@@ -978,12 +1011,12 @@ export default function Home() {
                 style={
                   !isDark
                     ? {
-                        backgroundColor: "#f7f4ee",
-                        backgroundImage:
-                          "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180' viewBox='0 0 180 180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.95' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='table' tableValues='0 0.08'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E\")",
-                        backgroundSize: "180px 180px",
-                        backgroundBlendMode: "multiply",
-                      }
+                      backgroundColor: "#f7f4ee",
+                      backgroundImage:
+                        "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180' viewBox='0 0 180 180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.95' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='table' tableValues='0 0.08'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E\")",
+                      backgroundSize: "180px 180px",
+                      backgroundBlendMode: "multiply",
+                    }
                     : undefined
                 }
               >
@@ -993,7 +1026,6 @@ export default function Home() {
                       return (
                         <article key={message.id} id={message.id}>
                           <div className={`ml-auto max-w-[94%] rounded-[1.25rem] border px-3 py-3 transition-all duration-200 md:max-w-[76%] md:rounded-[1.35rem] md:px-4 ${isDark ? "border-[var(--ji-border)] bg-[var(--ji-surface-muted)] text-stone-100" : "border-[#e7dcc4] bg-[#f0e7d4] text-slate-900"}`}>
-                            <p className={`mb-1 text-[10px] font-semibold uppercase tracking-[0.16em] ${isDark ? "text-stone-400" : "text-stone-500"}`}>You</p>
                             <p className="whitespace-pre-wrap leading-7">{message.content}</p>
                           </div>
                         </article>
@@ -1016,7 +1048,10 @@ export default function Home() {
 
                     return (
                       <article key={message.id} id={message.id} className="transition-all duration-300 ease-out">
-                        <p className={`mb-2 text-[10px] font-semibold uppercase tracking-[0.16em] ${isDark ? "text-stone-500" : "text-stone-400"}`}>Assistant</p>
+                        <div className="mb-2 flex items-center gap-1.5">
+                          <JanInfraBadge className={`h-4 w-4 ${isDark ? "text-[var(--ji-brand)]/70" : "text-[var(--ji-brand)]"}`} />
+                          <p className={`text-[10px] font-semibold uppercase tracking-[0.16em] ${isDark ? "text-stone-500" : "text-stone-400"}`}>JanInfra</p>
+                        </div>
 
                         {uncertain && null}
 
@@ -1026,11 +1061,10 @@ export default function Home() {
                               <button
                                 key={`${message.id}-${tab}`}
                                 onClick={() => setActiveTabs((p) => ({ ...p, [message.id]: tab }))}
-                                className={`rounded-full border px-3 py-1 text-xs ${
-                                  activeTab === tab
-                                    ? isDark ? "border-[var(--ji-border-strong)] bg-[var(--ji-surface-muted)] text-stone-100" : "border-slate-300 bg-slate-100 text-slate-900"
-                                    : isDark ? "border-[var(--ji-border)] text-stone-300" : "border-slate-200 text-slate-600"
-                                }`}
+                                className={`rounded-full border px-3 py-1 text-xs ${activeTab === tab
+                                  ? isDark ? "border-[var(--ji-border-strong)] bg-[var(--ji-surface-muted)] text-stone-100" : "border-slate-300 bg-slate-100 text-slate-900"
+                                  : isDark ? "border-[var(--ji-border)] text-stone-300" : "border-slate-200 text-slate-600"
+                                  }`}
                               >
                                 {cap(tab)}
                               </button>
@@ -1038,18 +1072,18 @@ export default function Home() {
                           </div>
                         )}
 
-                    <div className={`prose max-w-none ${isDark ? "prose-invert" : ""}`}>
+                        <div className={`prose max-w-none ${isDark ? "prose-invert" : ""}`}>
                           <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents(isDark)}>
                             {markdown}
                           </ReactMarkdown>
                         </div>
 
                         {!isTypingThis && (
-                        <div className="mt-4 flex flex-wrap items-center gap-2 opacity-75 transition-opacity duration-200 hover:opacity-100">
-                          <button onClick={() => void handleShare(message)} aria-label={sharedMessageId === message.id ? "Shared" : "Share response"} className={`inline-flex items-center rounded-md border p-2 text-xs transition-all duration-200 ${isDark ? "border-[var(--ji-border)] bg-[var(--ji-surface)] text-stone-300 hover:border-[var(--ji-border-strong)]" : "border-slate-200 bg-slate-50 text-slate-600 hover:border-slate-300"}`}>
-                            <ShareIcon className="h-3.5 w-3.5" />
-                          </button>
-                        </div>
+                          <div className="mt-4 flex flex-wrap items-center gap-2 opacity-75 transition-opacity duration-200 hover:opacity-100">
+                            <button onClick={() => void handleShare(message)} aria-label={sharedMessageId === message.id ? "Shared" : "Share response"} className={`inline-flex items-center rounded-md border p-2 text-xs transition-all duration-200 ${isDark ? "border-[var(--ji-border)] bg-[var(--ji-surface)] text-stone-300 hover:border-[var(--ji-border-strong)]" : "border-slate-200 bg-slate-50 text-slate-600 hover:border-slate-300"}`}>
+                              <ShareIcon className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
                         )}
 
                         {!isTypingThis && message.sources && message.sources.length > 0 && (
@@ -1096,9 +1130,8 @@ export default function Home() {
                 <div className="relative mx-auto w-full max-w-4xl pointer-events-auto">{renderComposer()}</div>
                 {hasUncertainEvidence && (
                   <p
-                    className={`pointer-events-none mx-auto mt-2 w-full max-w-4xl px-2 text-center text-[10px] md:text-[11px] ${
-                      isDark ? "text-stone-500" : "text-stone-500"
-                    }`}
+                    className={`pointer-events-none mx-auto mt-2 w-full max-w-4xl px-2 text-center text-[10px] md:text-[11px] ${isDark ? "text-stone-500" : "text-stone-500"
+                      }`}
                   >
                     Some responses may include uncertain claims when source evidence is limited.
                   </p>
@@ -1138,11 +1171,10 @@ export default function Home() {
             <button
               onClick={startGoogleAuth}
               disabled={authGoogleLoading}
-              className={`mt-5 inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl border text-sm font-medium transition-all ${
-                isDark
-                  ? "border-[var(--ji-border)] bg-[var(--ji-surface-muted)] text-stone-100 hover:bg-[var(--ji-surface-raised)]"
-                  : "border-slate-200 bg-white text-slate-800 hover:bg-slate-50"
-              } disabled:opacity-70`}
+              className={`mt-5 inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl border text-sm font-medium transition-all ${isDark
+                ? "border-[var(--ji-border)] bg-[var(--ji-surface-muted)] text-stone-100 hover:bg-[var(--ji-surface-raised)]"
+                : "border-slate-200 bg-white text-slate-800 hover:bg-slate-50"
+                } disabled:opacity-70`}
             >
               <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden="true">
                 <path fill="#EA4335" d="M12 10.2v3.9h5.4c-.2 1.3-1.5 3.9-5.4 3.9-3.2 0-5.9-2.6-5.9-5.9s2.7-5.9 5.9-5.9c1.8 0 3 .8 3.7 1.4l2.5-2.4C16.7 3.8 14.6 3 12 3 7 3 3 7 3 12s4 9 9 9c5.2 0 8.6-3.6 8.6-8.7 0-.6-.1-1.1-.2-1.5H12z" />
@@ -1155,9 +1187,8 @@ export default function Home() {
             {authRetryUrl && (
               <a
                 href={authRetryUrl}
-                className={`mt-3 inline-block text-sm underline underline-offset-2 ${
-                  isDark ? "text-stone-200 hover:text-stone-100" : "text-slate-700 hover:text-slate-900"
-                }`}
+                className={`mt-3 inline-block text-sm underline underline-offset-2 ${isDark ? "text-stone-200 hover:text-stone-100" : "text-slate-700 hover:text-slate-900"
+                  }`}
               >
                 Open Google sign-in directly
               </a>
