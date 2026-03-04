@@ -162,3 +162,28 @@ select:disabled,
   animation: aura-morph 8s ease-in-out infinite alternate;
   will-change: border-radius, transform, opacity;
 }
+
+@keyframes light-sweep {
+  0% {
+    background-position: 200% center;
+  }
+
+  100% {
+    background-position: -200% center;
+  }
+}
+
+.animate-light-sweep {
+  background: linear-gradient(110deg,
+      var(--ji-brand) 20%,
+      #ffc499 40%,
+      #fff8f0 50%,
+      #ffc499 60%,
+      var(--ji-brand) 80%);
+  background-size: 200% auto;
+  color: transparent;
+  background-clip: text;
+  -webkit-background-clip: text;
+  animation: light-sweep 4s linear infinite;
+  filter: drop-shadow(0 0 12px rgba(184, 90, 46, 0.4));
+}

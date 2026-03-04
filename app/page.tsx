@@ -215,12 +215,7 @@ const normalizeSources = (value: unknown): SourceCard[] => {
   return Array.from(uniq.values()).slice(0, 8);
 };
 
-function generateAuraStyles() {
-  return {
-    background: 'radial-gradient(circle at center, var(--ji-brand) 0%, transparent 70%)',
-    mixBlendMode: 'screen' as const,
-  };
-}
+
 
 const extractSections = (content: string): Section[] => {
   const lines = content.split("\n");
@@ -408,22 +403,6 @@ export default function Home() {
   const [voiceErrorToast, setVoiceErrorToast] = useState<string | null>(null);
   const [exampleIndex, setExampleIndex] = useState(0);
   const [placeholderFading, setPlaceholderFading] = useState(false);
-
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
-  const badgeRef = useRef<HTMLDivElement>(null);
-
-  const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    if (!badgeRef.current) return;
-    const rect = badgeRef.current.getBoundingClientRect();
-    const x = (e.clientX - rect.left - rect.width / 2) / 10;
-    const y = (e.clientY - rect.top - rect.height / 2) / 10;
-    setMousePos({ x, y });
-  }, []);
-
-  const handleMouseLeave = useCallback(() => {
-    setMousePos({ x: 0, y: 0 });
-  }, []);
-
   const nextMessageId = useRef(1);
   const googleRedirectTimeoutRef = useRef<number | null>(null);
   const chatScrollRef = useRef<HTMLDivElement | null>(null);
@@ -1014,33 +993,8 @@ export default function Home() {
           {!hasConversation ? (
             <div className="flex flex-1 flex-col items-center justify-center px-5 pb-16 md:px-8">
               <div className="mb-8 flex flex-col items-center text-center md:mb-10">
-                <div
-                  ref={badgeRef}
-                  onMouseMove={handleMouseMove}
-                  onMouseLeave={handleMouseLeave}
-                  className="relative mb-6 mt-2 flex h-24 w-24 items-center justify-center md:h-32 md:w-32"
-                  style={{ perspective: '800px' }}
-                >
-                  <div
-                    className={`animate-aura-morph absolute inset-4 z-0 blur-xl ${isDark ? 'opacity-30' : 'opacity-10'}`}
-                    style={generateAuraStyles()}
-                  />
-                  <div
-                    className="relative z-10 transition-transform duration-200 ease-out"
-                    style={{
-                      transform: `rotateY(${mousePos.x}deg) rotateX(${-mousePos.y}deg)`,
-                      transformStyle: 'preserve-3d'
-                    }}
-                  >
-                    <JanInfraBadge animated={true} className="h-14 w-14 text-[var(--ji-brand)] md:h-16 md:w-16 drop-shadow-lg" />
-                    <div
-                      className="absolute inset-0 z-20 rounded-full transition-opacity duration-200"
-                      style={{
-                        background: `radial-gradient(circle at ${50 + mousePos.x * 2}% ${50 + mousePos.y * 2}%, rgba(255,255,255,0.15) 0%, transparent 60%)`,
-                        transform: 'translateZ(10px)'
-                      }}
-                    />
-                  </div>
+                <div className="mb-6 mt-2 flex items-center justify-center">
+                  <FlowerSpinner className="h-16 w-16 md:h-20 md:w-20 animate-[spin_45s_linear_infinite] text-[var(--ji-brand)] opacity-80" />
                 </div>
                 <h1 className={`text-[28px] font-semibold leading-[1.15] tracking-[-0.02em] md:text-[40px] ${isDark ? "text-stone-100" : "text-slate-800"}`}>
                   {heroCopy.headline}
@@ -1179,63 +1133,65 @@ export default function Home() {
               </div>
             </div>
           )}
+
+          {voiceErrorToast && (
+            <div className="pointer-events-none absolute bottom-28 left-1/2 z-40 w-[calc(100%-1.5rem)] max-w-md -translate-x-1/2 md:bottom-24">
+              <div className={`rounded-xl border px-3 py-2 text-xs shadow-lg ${isDark ? "border-[var(--ji-border)] bg-[var(--ji-surface-muted)] text-rose-200" : "border-rose-200 bg-rose-50 text-rose-700"}`}>
+                {voiceErrorToast}
+              </div>
+            </div>
+          )}
+
+          {authEnabled && showAuthModal && !session && (
+            <div className="absolute inset-0 z-50 flex items-center justify-center px-4">
+              <button
+                onClick={() => {
+                  if (authGoogleLoading) return;
+                  setShowAuthModal(false);
+                }}
+                className="absolute inset-0 bg-black/35 backdrop-blur-[5px]"
+                aria-label="Close sign in"
+              />
+              <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_20%,rgba(0,0,0,0.38)_100%)]" />
+              <div className={`relative w-full max-w-md rounded-3xl border p-6 shadow-[0_16px_40px_rgba(15,23,42,0.16)] ${isDark ? "border-[var(--ji-border)] bg-[var(--ji-surface)]" : "border-slate-200 bg-white"}`}>
+                <p className={`text-xs font-semibold tracking-[0.16em] ${isDark ? "text-[var(--ji-brand-muted)]" : "text-[#C05020]"}`}>JANINFRA</p>
+                <h2 className="mt-2 text-2xl font-semibold">Sign in to continue</h2>
+                <p className={`mt-2 text-sm ${isDark ? "text-stone-300" : "text-slate-600"}`}>
+                  {pendingMessage ? "Complete login and your message will be sent automatically." : "Continue to use the scheme assistant."}
+                </p>
+
+                <button
+                  onClick={startGoogleAuth}
+                  disabled={authGoogleLoading}
+                  className={`mt-5 inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl border text-sm font-medium transition-all ${isDark
+                    ? "border-[var(--ji-border)] bg-[var(--ji-surface-muted)] text-stone-100 hover:bg-[var(--ji-surface-raised)]"
+                    : "border-slate-200 bg-white text-slate-800 hover:bg-slate-50"
+                    } disabled:opacity-70`}
+                >
+                  <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden="true">
+                    <path fill="#EA4335" d="M12 10.2v3.9h5.4c-.2 1.3-1.5 3.9-5.4 3.9-3.2 0-5.9-2.6-5.9-5.9s2.7-5.9 5.9-5.9c1.8 0 3 .8 3.7 1.4l2.5-2.4C16.7 3.8 14.6 3 12 3 7 3 3 7 3 12s4 9 9 9c5.2 0 8.6-3.6 8.6-8.7 0-.6-.1-1.1-.2-1.5H12z" />
+                  </svg>
+                  {authGoogleLoading ? "Redirecting to Google..." : "Continue with Google"}
+                </button>
+
+                {authError && <p className="mt-3 text-sm text-rose-500">{authError}</p>}
+                {authNotice && (
+                  <div className={`mt-2 rounded-md p-3 text-sm ${isDark ? "bg-blue-900/30 text-blue-300" : "bg-blue-50 text-blue-800"}`}>
+                    {authNotice}
+                    {authRetryUrl && (
+                      <div className="mt-2">
+                        <a href={authRetryUrl} className={`font-medium underline ${isDark ? "text-blue-300 hover:text-blue-200" : "text-blue-700 hover:text-blue-800"}`}>
+                          Click here if you aren&apos;t redirected automatically
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </section>
       </div>
-
-      {voiceErrorToast && (
-        <div className="pointer-events-none absolute bottom-28 left-1/2 z-40 w-[calc(100%-1.5rem)] max-w-md -translate-x-1/2 md:bottom-24">
-          <div className={`rounded-xl border px-3 py-2 text-xs shadow-lg ${isDark ? "border-[var(--ji-border)] bg-[var(--ji-surface-muted)] text-rose-200" : "border-rose-200 bg-rose-50 text-rose-700"}`}>
-            {voiceErrorToast}
-          </div>
-        </div>
-      )}
-
-      {authEnabled && showAuthModal && !session && (
-        <div className="absolute inset-0 z-50 flex items-center justify-center px-4">
-          <button
-            onClick={() => {
-              if (authGoogleLoading) return;
-              setShowAuthModal(false);
-            }}
-            className="absolute inset-0 bg-black/35 backdrop-blur-[5px]"
-            aria-label="Close sign in"
-          />
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_20%,rgba(0,0,0,0.38)_100%)]" />
-          <div className={`relative w-full max-w-md rounded-3xl border p-6 shadow-[0_16px_40px_rgba(15,23,42,0.16)] ${isDark ? "border-[var(--ji-border)] bg-[var(--ji-surface)]" : "border-slate-200 bg-white"}`}>
-            <p className={`text-xs font-semibold tracking-[0.16em] ${isDark ? "text-[var(--ji-brand-muted)]" : "text-[#C05020]"}`}>JANINFRA</p>
-            <h2 className="mt-2 text-2xl font-semibold">Sign in to continue</h2>
-            <p className={`mt-2 text-sm ${isDark ? "text-stone-300" : "text-slate-600"}`}>
-              {pendingMessage ? "Complete login and your message will be sent automatically." : "Continue to use the scheme assistant."}
-            </p>
-
-            <button
-              onClick={startGoogleAuth}
-              disabled={authGoogleLoading}
-              className={`mt-5 inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl border text-sm font-medium transition-all ${isDark
-                ? "border-[var(--ji-border)] bg-[var(--ji-surface-muted)] text-stone-100 hover:bg-[var(--ji-surface-raised)]"
-                : "border-slate-200 bg-white text-slate-800 hover:bg-slate-50"
-                } disabled:opacity-70`}
-            >
-              <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden="true">
-                <path fill="#EA4335" d="M12 10.2v3.9h5.4c-.2 1.3-1.5 3.9-5.4 3.9-3.2 0-5.9-2.6-5.9-5.9s2.7-5.9 5.9-5.9c1.8 0 3 .8 3.7 1.4l2.5-2.4C16.7 3.8 14.6 3 12 3 7 3 3 7 3 12s4 9 9 9c5.2 0 8.6-3.6 8.6-8.7 0-.6-.1-1.1-.2-1.5H12z" />
-              </svg>
-              {authGoogleLoading ? "Redirecting to Google..." : "Continue with Google"}
-            </button>
-
-            {authError && <p className="mt-3 text-sm text-rose-500">{authError}</p>}
-            {authNotice && <p className={`mt-3 text-sm ${isDark ? "text-emerald-300" : "text-emerald-700"}`}>{authNotice}</p>}
-            {authRetryUrl && (
-              <a
-                href={authRetryUrl}
-                className={`mt-3 inline-block text-sm underline underline-offset-2 ${isDark ? "text-stone-200 hover:text-stone-100" : "text-slate-700 hover:text-slate-900"
-                  }`}
-              >
-                Open Google sign-in directly
-              </a>
-            )}
-          </div>
-        </div>
-      )}
     </main>
   );
 }
