@@ -215,6 +215,13 @@ const normalizeSources = (value: unknown): SourceCard[] => {
   return Array.from(uniq.values()).slice(0, 8);
 };
 
+function generateAuraStyles() {
+  return {
+    background: 'radial-gradient(circle at center, var(--ji-brand) 0%, transparent 70%)',
+    mixBlendMode: 'screen' as const,
+  };
+}
+
 const extractSections = (content: string): Section[] => {
   const lines = content.split("\n");
   const out: Section[] = [];
@@ -401,6 +408,21 @@ export default function Home() {
   const [voiceErrorToast, setVoiceErrorToast] = useState<string | null>(null);
   const [exampleIndex, setExampleIndex] = useState(0);
   const [placeholderFading, setPlaceholderFading] = useState(false);
+
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  const badgeRef = useRef<HTMLDivElement>(null);
+
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    if (!badgeRef.current) return;
+    const rect = badgeRef.current.getBoundingClientRect();
+    const x = (e.clientX - rect.left - rect.width / 2) / 10;
+    const y = (e.clientY - rect.top - rect.height / 2) / 10;
+    setMousePos({ x, y });
+  }, []);
+
+  const handleMouseLeave = useCallback(() => {
+    setMousePos({ x: 0, y: 0 });
+  }, []);
 
   const nextMessageId = useRef(1);
   const googleRedirectTimeoutRef = useRef<number | null>(null);
@@ -992,8 +1014,33 @@ export default function Home() {
           {!hasConversation ? (
             <div className="flex flex-1 flex-col items-center justify-center px-5 pb-16 md:px-8">
               <div className="mb-8 flex flex-col items-center text-center md:mb-10">
-                <div className="animate-hologram-float mb-6 mt-2">
-                  <JanInfraBadge animated={true} className="animate-hologram-pulse h-14 w-14 text-[var(--ji-brand)] md:h-16 md:w-16" />
+                <div
+                  ref={badgeRef}
+                  onMouseMove={handleMouseMove}
+                  onMouseLeave={handleMouseLeave}
+                  className="relative mb-6 mt-2 flex h-24 w-24 items-center justify-center md:h-32 md:w-32"
+                  style={{ perspective: '800px' }}
+                >
+                  <div
+                    className={`animate-aura-morph absolute inset-4 z-0 blur-xl ${isDark ? 'opacity-30' : 'opacity-10'}`}
+                    style={generateAuraStyles()}
+                  />
+                  <div
+                    className="relative z-10 transition-transform duration-200 ease-out"
+                    style={{
+                      transform: `rotateY(${mousePos.x}deg) rotateX(${-mousePos.y}deg)`,
+                      transformStyle: 'preserve-3d'
+                    }}
+                  >
+                    <JanInfraBadge animated={true} className="h-14 w-14 text-[var(--ji-brand)] md:h-16 md:w-16 drop-shadow-lg" />
+                    <div
+                      className="absolute inset-0 z-20 rounded-full transition-opacity duration-200"
+                      style={{
+                        background: `radial-gradient(circle at ${50 + mousePos.x * 2}% ${50 + mousePos.y * 2}%, rgba(255,255,255,0.15) 0%, transparent 60%)`,
+                        transform: 'translateZ(10px)'
+                      }}
+                    />
+                  </div>
                 </div>
                 <h1 className={`text-[28px] font-semibold leading-[1.15] tracking-[-0.02em] md:text-[40px] ${isDark ? "text-stone-100" : "text-slate-800"}`}>
                   {heroCopy.headline}
