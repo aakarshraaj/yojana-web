@@ -1,11 +1,4 @@
-import type { Metadata, Viewport } from "next";
-
-export const viewport: Viewport = {
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#faf8f4" },
-    { media: "(prefers-color-scheme: dark)", color: "#161412" },
-  ],
-};
+import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
@@ -24,6 +17,11 @@ export const metadata: Metadata = {
   title: "JanInfra",
   description: "JanInfra helps people find relevant Indian government schemes based on their profile.",
   metadataBase: new URL("https://www.janinfra.in"),
+  appleWebApp: {
+    capable: true,
+    title: "JanInfra",
+    statusBarStyle: "black-translucent",
+  },
   icons: {
     icon: "/icon.svg",
     shortcut: "/icon.svg",
