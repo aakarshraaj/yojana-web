@@ -171,14 +171,14 @@ export default function VoiceRecorder({
           } ${
             isTranscribing
               ? isDark
-                ? "border-amber-900/50 bg-[#2b2117] text-stone-200"
+                ? "border-[var(--ji-border)] bg-[var(--ji-surface-muted)] text-stone-200"
                 : "border-slate-300 bg-slate-100 text-slate-700"
               : isRecording
                 ? isDark
-                  ? "border-rose-500/45 bg-rose-950/40 text-rose-100 shadow-[0_0_0_1px_rgba(251,113,133,0.2)_inset]"
+                  ? "border-[var(--ji-border-strong)] bg-[var(--ji-danger-surface)] text-[var(--ji-danger-text)]"
                   : "border-rose-300 bg-rose-50 text-rose-700 shadow-[0_6px_14px_rgba(244,63,94,0.12)]"
                 : isDark
-                  ? "border-amber-950/40 bg-[#231b14] text-stone-200 hover:border-amber-800/60"
+                  ? "border-[var(--ji-border)] bg-[var(--ji-surface)] text-stone-200 hover:border-[var(--ji-border-strong)]"
                   : "border-slate-200 bg-white text-slate-700 hover:border-slate-300"
           } ${busy ? "cursor-not-allowed opacity-75" : ""}`}
         >
@@ -190,8 +190,8 @@ export default function VoiceRecorder({
             />
           ) : isRecording ? (
             <span className="relative inline-flex h-2.5 w-2.5">
-              <span className={`absolute inline-flex h-full w-full animate-ping rounded-full ${isDark ? "bg-rose-300/60" : "bg-rose-500/55"}`} />
-              <span className={`relative inline-flex h-2.5 w-2.5 rounded-full ${isDark ? "bg-rose-300" : "bg-rose-500"}`} />
+              <span className={`absolute inline-flex h-full w-full animate-ping rounded-full ${isDark ? "bg-[var(--ji-danger-text)]/45" : "bg-rose-500/55"}`} />
+              <span className={`relative inline-flex h-2.5 w-2.5 rounded-full ${isDark ? "bg-[var(--ji-danger-text)]" : "bg-rose-500"}`} />
             </span>
           ) : (
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4">
@@ -203,7 +203,7 @@ export default function VoiceRecorder({
           {isRecording && !embedded && (
             <span
               className={`inline-flex h-5 w-5 items-center justify-center rounded-full ${
-                isDark ? "bg-rose-300/20 text-rose-100" : "bg-rose-200/70 text-rose-700"
+                isDark ? "bg-[var(--ji-danger-text)]/20 text-[var(--ji-danger-text)]" : "bg-rose-200/70 text-rose-700"
               }`}
             >
               <span className="h-2 w-2 rounded-[2px] bg-current" />

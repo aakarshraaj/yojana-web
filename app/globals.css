@@ -16,17 +16,22 @@
 }
 
 .theme-dark {
-  --background: #18130f;
-  --foreground: #e7dfd5;
+  --background: #161412;
+  --foreground: #e4ddd3;
   --ji-brand: #b85a2e;
-  --ji-brand-strong: #9f4923;
-  --ji-brand-soft: #2b2018;
-  --ji-border: #3b2b1f;
-  --ji-surface: #231b14;
-  --ji-surface-muted: #2d241b;
-  --ji-placeholder: #8f7a67;
-  --ji-topbar-start: #cf7f4d;
-  --ji-topbar-mid: #f8e8d8;
+  --ji-brand-strong: #a14b25;
+  --ji-brand-soft: #3b2e25;
+  --ji-brand-muted: #d2b190;
+  --ji-border: #3d3732;
+  --ji-border-strong: #5d5248;
+  --ji-surface: #211d1a;
+  --ji-surface-muted: #2a2521;
+  --ji-surface-raised: #322c26;
+  --ji-placeholder: #968a7f;
+  --ji-danger-surface: #3a2425;
+  --ji-danger-text: #f0c4c2;
+  --ji-topbar-start: #b57858;
+  --ji-topbar-mid: #d9cbbf;
   --ji-topbar-end: #2f8a58;
 }
 

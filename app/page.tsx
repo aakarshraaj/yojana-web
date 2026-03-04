@@ -140,10 +140,10 @@ const markdownComponents = (isDark: boolean) => ({
     </div>
   ),
   th: (props: React.HTMLAttributes<HTMLTableCellElement>) => (
-    <th className={`border px-2 py-1 text-left ${isDark ? "border-amber-950/40" : "border-slate-200"}`} {...props} />
+    <th className={`border px-2 py-1 text-left ${isDark ? "border-[var(--ji-border)]" : "border-slate-200"}`} {...props} />
   ),
   td: (props: React.HTMLAttributes<HTMLTableCellElement>) => (
-    <td className={`border px-2 py-1 ${isDark ? "border-amber-950/40" : "border-slate-200"}`} {...props} />
+    <td className={`border px-2 py-1 ${isDark ? "border-[var(--ji-border)]" : "border-slate-200"}`} {...props} />
   ),
 });
 
@@ -729,7 +729,7 @@ export default function Home() {
     <div className="w-full">
       <div
         className={`rounded-[1.45rem] border px-3 pb-3 pt-3 shadow-[0_8px_28px_rgba(15,23,42,0.08)] transition-all duration-200 md:rounded-[1.65rem] md:px-4 ${
-          isDark ? "border-amber-950/40 bg-[#231b14] focus-within:border-amber-800/60" : "border-slate-200 bg-white focus-within:border-slate-300"
+          isDark ? "border-[var(--ji-border)] bg-[var(--ji-surface)] focus-within:border-[var(--ji-border-strong)]" : "border-slate-200 bg-white focus-within:border-slate-300"
         }`}
       >
         <textarea
@@ -756,7 +756,7 @@ export default function Home() {
             <div className="flex items-center gap-2 overflow-x-auto pb-1 pr-1">
             <div
               className={`relative inline-flex h-9 items-center rounded-full border px-1 ${
-                isDark ? "border-amber-950/40 bg-[#231b14]" : "border-slate-200 bg-white"
+                isDark ? "border-[var(--ji-border)] bg-[var(--ji-surface)]" : "border-slate-200 bg-white"
               }`}
               aria-label="Response language"
             >
@@ -788,7 +788,7 @@ export default function Home() {
           </div>
             <div
               className={`inline-flex items-center gap-1 rounded-full border p-1 ${
-                isDark ? "border-amber-950/40 bg-[#1f1711]/90" : "border-slate-200 bg-slate-50/80"
+                isDark ? "border-[var(--ji-border)] bg-[var(--ji-surface-muted)]" : "border-slate-200 bg-slate-50/80"
               }`}
             >
               <VoiceRecorder
@@ -808,7 +808,7 @@ export default function Home() {
               />
               {(loading || input.trim().length > 0) && (
                 <>
-                  <span className={`h-6 w-px ${isDark ? "bg-amber-900/40" : "bg-slate-200"}`} />
+                  <span className={`h-6 w-px ${isDark ? "bg-[var(--ji-border)]" : "bg-slate-200"}`} />
                   <button
                     onClick={() => void sendMessage()}
                     disabled={loading || input.trim().length === 0}
@@ -848,12 +848,12 @@ export default function Home() {
       />
       <div className="flex h-full">
         <section className="flex min-w-0 flex-1 flex-col">
-          <header className={`relative z-30 flex h-[64px] items-center justify-between px-3 md:px-8 ${isDark ? "border-b border-amber-950/50 bg-[#18130f]/85" : "border-b border-slate-200 bg-white/60"}`}>
+          <header className={`relative z-30 flex h-[64px] items-center justify-between px-3 md:px-8 ${isDark ? "border-b border-[var(--ji-border)] bg-[var(--background)]" : "border-b border-slate-200 bg-white/60"}`}>
             <div className="flex items-center gap-2">
               <JanInfraBadge className="h-8 w-8" style={{ color: brandColor }} />
               <button
                 onClick={resetConversation}
-                className={`inline-flex h-10 items-center gap-1.5 rounded-full border px-3 text-xs md:px-3.5 md:text-sm ${isDark ? "border-amber-950/40 bg-[#231b14] text-stone-200 hover:bg-[#2d241b]" : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50"}`}
+                className={`inline-flex h-10 items-center gap-1.5 rounded-full border px-3 text-xs md:px-3.5 md:text-sm ${isDark ? "border-[var(--ji-border)] bg-[var(--ji-surface)] text-stone-200 hover:bg-[var(--ji-surface-muted)]" : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50"}`}
               >
                 <PlusIcon className="h-3.5 w-3.5" />
                 New search
@@ -862,7 +862,7 @@ export default function Home() {
             <div className="ml-auto flex items-center gap-2">
               <button
                 onClick={() => setTheme((p) => (p === "dark" ? "light" : "dark"))}
-                className={`inline-flex h-10 items-center gap-1.5 rounded-full border px-3 text-xs md:text-sm ${isDark ? "border-amber-950/40 bg-[#231b14] text-stone-200 hover:bg-[#2d241b]" : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50"}`}
+                className={`inline-flex h-10 items-center gap-1.5 rounded-full border px-3 text-xs md:text-sm ${isDark ? "border-[var(--ji-border)] bg-[var(--ji-surface)] text-stone-200 hover:bg-[var(--ji-surface-muted)]" : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50"}`}
               >
                 {isDark ? <SunIcon className="h-4 w-4" /> : <MoonIcon className="h-4 w-4" />}
                 {isDark ? "Light" : "Dark"}
@@ -870,7 +870,7 @@ export default function Home() {
               <div className="relative">
                 <button
                   onClick={() => setShowSettingsMenu((p) => !p)}
-                  className={`inline-flex h-10 items-center gap-2 rounded-full border px-3 text-xs md:text-sm ${isDark ? "border-amber-950/40 bg-[#231b14] text-stone-300 hover:bg-[#2d241b]" : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50"}`}
+                  className={`inline-flex h-10 items-center gap-2 rounded-full border px-3 text-xs md:text-sm ${isDark ? "border-[var(--ji-border)] bg-[var(--ji-surface)] text-stone-300 hover:bg-[var(--ji-surface-muted)]" : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50"}`}
                   aria-label="Open account menu"
                 >
                   <UserIcon className="h-4 w-4" />
@@ -884,12 +884,12 @@ export default function Home() {
                       className="fixed inset-0 z-40 md:hidden"
                       aria-label="Close account menu"
                     />
-                    <div className={`fixed left-3 right-3 top-[76px] z-50 rounded-2xl border p-2 shadow-xl md:absolute md:left-auto md:right-0 md:top-full md:mt-2 md:w-56 ${isDark ? "border-amber-950/40 bg-[#231b14]" : "border-slate-200 bg-white"}`}>
-                    <div className={`mb-2 mt-1 border-t pt-2 ${isDark ? "border-amber-950/40" : "border-slate-200"}`}>
+                    <div className={`fixed left-3 right-3 top-[76px] z-50 rounded-2xl border p-2 shadow-xl md:absolute md:left-auto md:right-0 md:top-full md:mt-2 md:w-56 ${isDark ? "border-[var(--ji-border)] bg-[var(--ji-surface)]" : "border-slate-200 bg-white"}`}>
+                    <div className={`mb-2 mt-1 border-t pt-2 ${isDark ? "border-[var(--ji-border)]" : "border-slate-200"}`}>
                       <p className={`mb-1 px-1 text-[11px] uppercase tracking-[0.12em] ${isDark ? "text-stone-500" : "text-slate-500"}`}>Language</p>
                       <div
                         className={`relative inline-flex h-10 w-full items-center rounded-full border ${
-                          isDark ? "border-amber-950/40 bg-[#231b14]" : "border-slate-200 bg-white"
+                          isDark ? "border-[var(--ji-border)] bg-[var(--ji-surface)]" : "border-slate-200 bg-white"
                         }`}
                       >
                         <select
@@ -924,7 +924,7 @@ export default function Home() {
                           handleSignOut();
                           setShowSettingsMenu(false);
                         }}
-                        className={`w-full rounded-lg px-3 py-2 text-left text-sm ${isDark ? "text-stone-200 hover:bg-[#2d241b]" : "text-slate-800 hover:bg-slate-50"}`}
+                        className={`w-full rounded-lg px-3 py-2 text-left text-sm ${isDark ? "text-stone-200 hover:bg-[var(--ji-surface-muted)]" : "text-slate-800 hover:bg-slate-50"}`}
                       >
                         Sign out
                       </button>
@@ -937,7 +937,7 @@ export default function Home() {
                           setShowAuthModal(true);
                           setShowSettingsMenu(false);
                         }}
-                        className={`w-full rounded-lg px-3 py-2 text-left text-sm ${isDark ? "text-stone-200 hover:bg-[#2d241b]" : "text-slate-800 hover:bg-slate-50"}`}
+                        className={`w-full rounded-lg px-3 py-2 text-left text-sm ${isDark ? "text-stone-200 hover:bg-[var(--ji-surface-muted)]" : "text-slate-800 hover:bg-slate-50"}`}
                       >
                         Sign in
                       </button>
@@ -963,7 +963,7 @@ export default function Home() {
                   <button
                     key={chip.label}
                     onClick={() => setInput(chip.value)}
-                    className={`shrink-0 rounded-full border px-3 py-1.5 text-xs ${isDark ? "border-amber-950/40 bg-[#231b14]" : "border-slate-200 bg-white"}`}
+                    className={`shrink-0 rounded-full border px-3 py-1.5 text-xs ${isDark ? "border-[var(--ji-border)] bg-[var(--ji-surface)]" : "border-slate-200 bg-white"}`}
                   >
                     {chip.label}
                   </button>
@@ -992,7 +992,7 @@ export default function Home() {
                     if (message.role === "user") {
                       return (
                         <article key={message.id} id={message.id}>
-                          <div className={`ml-auto max-w-[94%] rounded-[1.25rem] border px-3 py-3 transition-all duration-200 md:max-w-[76%] md:rounded-[1.35rem] md:px-4 ${isDark ? "border-amber-950/40 bg-[#2d241b]/78 text-stone-100" : "border-[#e7dcc4] bg-[#f0e7d4] text-slate-900"}`}>
+                          <div className={`ml-auto max-w-[94%] rounded-[1.25rem] border px-3 py-3 transition-all duration-200 md:max-w-[76%] md:rounded-[1.35rem] md:px-4 ${isDark ? "border-[var(--ji-border)] bg-[var(--ji-surface-muted)] text-stone-100" : "border-[#e7dcc4] bg-[#f0e7d4] text-slate-900"}`}>
                             <p className={`mb-1 text-[10px] font-semibold uppercase tracking-[0.16em] ${isDark ? "text-stone-400" : "text-stone-500"}`}>You</p>
                             <p className="whitespace-pre-wrap leading-7">{message.content}</p>
                           </div>
@@ -1028,8 +1028,8 @@ export default function Home() {
                                 onClick={() => setActiveTabs((p) => ({ ...p, [message.id]: tab }))}
                                 className={`rounded-full border px-3 py-1 text-xs ${
                                   activeTab === tab
-                                    ? isDark ? "border-amber-800/60 bg-[#2d241b] text-stone-100" : "border-slate-300 bg-slate-100 text-slate-900"
-                                    : isDark ? "border-amber-950/40 text-stone-300" : "border-slate-200 text-slate-600"
+                                    ? isDark ? "border-[var(--ji-border-strong)] bg-[var(--ji-surface-muted)] text-stone-100" : "border-slate-300 bg-slate-100 text-slate-900"
+                                    : isDark ? "border-[var(--ji-border)] text-stone-300" : "border-slate-200 text-slate-600"
                                 }`}
                               >
                                 {cap(tab)}
@@ -1046,14 +1046,14 @@ export default function Home() {
 
                         {!isTypingThis && (
                         <div className="mt-4 flex flex-wrap items-center gap-2 opacity-75 transition-opacity duration-200 hover:opacity-100">
-                          <button onClick={() => void handleShare(message)} aria-label={sharedMessageId === message.id ? "Shared" : "Share response"} className={`inline-flex items-center rounded-md border p-2 text-xs transition-all duration-200 ${isDark ? "border-amber-950/40 bg-[#231b14] text-stone-300 hover:border-amber-800/60" : "border-slate-200 bg-slate-50 text-slate-600 hover:border-slate-300"}`}>
+                          <button onClick={() => void handleShare(message)} aria-label={sharedMessageId === message.id ? "Shared" : "Share response"} className={`inline-flex items-center rounded-md border p-2 text-xs transition-all duration-200 ${isDark ? "border-[var(--ji-border)] bg-[var(--ji-surface)] text-stone-300 hover:border-[var(--ji-border-strong)]" : "border-slate-200 bg-slate-50 text-slate-600 hover:border-slate-300"}`}>
                             <ShareIcon className="h-3.5 w-3.5" />
                           </button>
                         </div>
                         )}
 
                         {!isTypingThis && message.sources && message.sources.length > 0 && (
-                          <div className={`mt-4 border-t pt-3 ${isDark ? "border-amber-950/50" : "border-slate-100"}`}>
+                          <div className={`mt-4 border-t pt-3 ${isDark ? "border-[var(--ji-border)]" : "border-slate-100"}`}>
                             <p className={`mb-2 text-[10px] font-semibold uppercase tracking-[0.15em] ${isDark ? "text-stone-500" : "text-stone-500"}`}>Sources</p>
                             <div className="grid gap-2 sm:grid-cols-2">
                               {message.sources.map((source, idx) => {
@@ -1066,7 +1066,7 @@ export default function Home() {
                                     href={source.url}
                                     target="_blank"
                                     rel="noreferrer"
-                                    className={`rounded-xl border p-3 transition-all duration-200 hover:-translate-y-0.5 ${isDark ? "border-amber-950/40 bg-[#231b14] hover:bg-[#2d241b]" : "border-slate-200 bg-slate-50 hover:bg-slate-100"}`}
+                                    className={`rounded-xl border p-3 transition-all duration-200 hover:-translate-y-0.5 ${isDark ? "border-[var(--ji-border)] bg-[var(--ji-surface)] hover:bg-[var(--ji-surface-muted)]" : "border-slate-200 bg-slate-50 hover:bg-slate-100"}`}
                                   >
                                     <p className={`line-clamp-1 text-xs font-semibold ${isDark ? "text-stone-100" : "text-slate-800"}`}>[{idx + 1}] {source.title}</p>
                                     <p className={`mt-0.5 text-[11px] ${isDark ? "text-stone-400" : "text-stone-500"}`}>{host} · {type}</p>
@@ -1092,7 +1092,7 @@ export default function Home() {
               </div>
 
               <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 px-3 pb-3 pt-10 md:px-8 md:pb-4 md:pt-16">
-                <div className={`pointer-events-none absolute inset-x-0 bottom-0 h-44 ${isDark ? "bg-gradient-to-t from-[#18130f] via-[#18130f]/85 to-transparent" : "bg-gradient-to-t from-white via-white/88 to-transparent"}`} />
+                <div className={`pointer-events-none absolute inset-x-0 bottom-0 h-44 ${isDark ? "bg-gradient-to-t from-[var(--background)] via-[var(--background)] to-transparent" : "bg-gradient-to-t from-white via-white/88 to-transparent"}`} />
                 <div className="relative mx-auto w-full max-w-4xl pointer-events-auto">{renderComposer()}</div>
                 {hasUncertainEvidence && (
                   <p
@@ -1111,7 +1111,7 @@ export default function Home() {
 
       {voiceErrorToast && (
         <div className="pointer-events-none absolute bottom-28 left-1/2 z-40 w-[calc(100%-1.5rem)] max-w-md -translate-x-1/2 md:bottom-24">
-          <div className={`rounded-xl border px-3 py-2 text-xs shadow-lg ${isDark ? "border-amber-900/40 bg-[#2b2117] text-rose-200" : "border-rose-200 bg-rose-50 text-rose-700"}`}>
+          <div className={`rounded-xl border px-3 py-2 text-xs shadow-lg ${isDark ? "border-[var(--ji-border)] bg-[var(--ji-surface-muted)] text-rose-200" : "border-rose-200 bg-rose-50 text-rose-700"}`}>
             {voiceErrorToast}
           </div>
         </div>
@@ -1128,8 +1128,8 @@ export default function Home() {
             aria-label="Close sign in"
           />
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_20%,rgba(0,0,0,0.38)_100%)]" />
-          <div className={`relative w-full max-w-md rounded-3xl border p-6 shadow-[0_16px_40px_rgba(15,23,42,0.16)] ${isDark ? "border-amber-950/40 bg-[#231b14]" : "border-slate-200 bg-white"}`}>
-            <p className={`text-xs font-semibold tracking-[0.16em] ${isDark ? "text-[#d9ad88]" : "text-[#C05020]"}`}>JANINFRA</p>
+          <div className={`relative w-full max-w-md rounded-3xl border p-6 shadow-[0_16px_40px_rgba(15,23,42,0.16)] ${isDark ? "border-[var(--ji-border)] bg-[var(--ji-surface)]" : "border-slate-200 bg-white"}`}>
+            <p className={`text-xs font-semibold tracking-[0.16em] ${isDark ? "text-[var(--ji-brand-muted)]" : "text-[#C05020]"}`}>JANINFRA</p>
             <h2 className="mt-2 text-2xl font-semibold">Sign in to continue</h2>
             <p className={`mt-2 text-sm ${isDark ? "text-stone-300" : "text-slate-600"}`}>
               {pendingMessage ? "Complete login and your message will be sent automatically." : "Continue to use the scheme assistant."}
@@ -1140,7 +1140,7 @@ export default function Home() {
               disabled={authGoogleLoading}
               className={`mt-5 inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl border text-sm font-medium transition-all ${
                 isDark
-                  ? "border-amber-900/50 bg-[#2d241b] text-stone-100 hover:bg-[#3a2d21]"
+                  ? "border-[var(--ji-border)] bg-[var(--ji-surface-muted)] text-stone-100 hover:bg-[var(--ji-surface-raised)]"
                   : "border-slate-200 bg-white text-slate-800 hover:bg-slate-50"
               } disabled:opacity-70`}
             >
