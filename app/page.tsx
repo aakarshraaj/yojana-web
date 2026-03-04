@@ -95,16 +95,20 @@ const languageOptions = [
 ];
 const heroCopyByLanguage = {
   en: {
-    primary: "Find schemes by your profile.",
+    headline: "Discover the benefits meant for you.",
+    sub: "4,600+ government schemes. One intelligent search.",
   },
   hi: {
-    primary: "अपनी प्रोफ़ाइल के आधार पर योजनाएँ खोजें।",
+    headline: "आपके लिए बने लाभों की खोज करें।",
+    sub: "4,600+ सरकारी योजनाएँ। एक बुद्धिमान खोज।",
   },
   mr: {
-    primary: "तुमच्या प्रोफाइलनुसार योजना शोधा.",
+    headline: "तुमच्यासाठी असलेले लाभ शोधा.",
+    sub: "4,600+ सरकारी योजना. एक बुद्धिमान शोध.",
   },
   bn: {
-    primary: "আপনার প্রোফাইল অনুযায়ী স্কিম খুঁজুন।",
+    headline: "আপনার জন্য তৈরি সুবিধাগুলি খুঁজুন।",
+    sub: "৪,৬০০+ সরকারি স্কিম। একটি বুদ্ধিমান অনুসন্ধান।",
   },
 } as const;
 
@@ -776,10 +780,16 @@ export default function Home() {
     await submitQuestion(q);
   };
 
-  const renderComposer = () => (
+  const renderComposer = (isHero = false) => (
     <div className="w-full">
       <div
-        className={`rounded-[1.45rem] border px-3 pb-3 pt-3 shadow-[0_8px_28px_rgba(15,23,42,0.08)] transition-all duration-200 md:rounded-[1.65rem] md:px-4 ${isDark ? "border-[var(--ji-border)] bg-[var(--ji-surface)] focus-within:border-[var(--ji-border-strong)]" : "border-slate-200 bg-white focus-within:border-slate-300"
+        className={`rounded-[1.45rem] border px-3 pb-3 pt-3 transition-all duration-300 md:rounded-[1.65rem] md:px-4 ${isHero
+          ? isDark
+            ? "border-[var(--ji-border)] bg-[var(--ji-surface)] shadow-[0_8px_40px_rgba(0,0,0,0.25)] focus-within:border-[var(--ji-border-strong)] focus-within:shadow-[0_12px_48px_rgba(0,0,0,0.35)]"
+            : "border-slate-200/80 bg-white shadow-[0_8px_40px_rgba(15,23,42,0.06)] focus-within:border-slate-300 focus-within:shadow-[0_12px_48px_rgba(15,23,42,0.10)]"
+          : isDark
+            ? "border-[var(--ji-border)] bg-[var(--ji-surface)] shadow-[0_4px_20px_rgba(0,0,0,0.2)] focus-within:border-[var(--ji-border-strong)] focus-within:shadow-[0_8px_28px_rgba(0,0,0,0.3)]"
+            : "border-slate-200 bg-white shadow-[0_4px_20px_rgba(15,23,42,0.05)] focus-within:border-slate-300 focus-within:shadow-[0_8px_28px_rgba(15,23,42,0.08)]"
           }`}
       >
         <textarea
@@ -797,21 +807,21 @@ export default function Home() {
               void sendMessage();
             }
           }}
-          className={`w-full min-h-[52px] resize-none overflow-hidden bg-transparent text-[17px] leading-7 outline-none md:min-h-[60px] md:text-[18px] placeholder:transition-opacity placeholder:duration-300 ${placeholderFading ? "placeholder:opacity-0" : "placeholder:opacity-55"} ${isDark ? "text-stone-100 placeholder:text-[var(--ji-placeholder)]" : "text-slate-900 placeholder:text-[var(--ji-placeholder)]"
+          className={`w-full min-h-[52px] resize-none overflow-hidden bg-transparent text-[16px] leading-7 outline-none md:min-h-[60px] md:text-[17px] placeholder:transition-opacity placeholder:duration-300 ${placeholderFading ? "placeholder:opacity-0" : "placeholder:opacity-45"} ${isDark ? "text-stone-100 placeholder:text-[var(--ji-placeholder)]" : "text-slate-900 placeholder:text-[var(--ji-placeholder)]"
             }`}
           placeholder={composerPlaceholder}
         />
-        <div className="mt-3 flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 pr-1">
+        <div className="mt-2 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 overflow-x-auto pb-0.5 pr-1">
             <div
-              className={`relative inline-flex h-9 items-center rounded-full border px-1 ${isDark ? "border-[var(--ji-border)] bg-[var(--ji-surface)]" : "border-slate-200 bg-white"
+              className={`relative inline-flex h-8 items-center rounded-full border px-1 transition-colors duration-200 ${isDark ? "border-[var(--ji-border)] bg-[var(--ji-surface)] hover:border-[var(--ji-border-strong)]" : "border-slate-200 bg-slate-50/60 hover:border-slate-300"
                 }`}
               aria-label="Response language"
             >
               <select
                 value={language}
                 onChange={(e) => setLanguage(e.target.value)}
-                className={`h-full w-auto appearance-none bg-transparent pl-2.5 pr-7 text-xs outline-none ${isDark ? "text-stone-200" : "text-slate-700"
+                className={`h-full w-auto appearance-none bg-transparent pl-2.5 pr-7 text-[11px] font-medium tracking-wide outline-none ${isDark ? "text-stone-300" : "text-slate-600"
                   }`}
                 aria-label="Select language"
               >
@@ -826,7 +836,7 @@ export default function Home() {
                 fill="none"
                 stroke="currentColor"
                 strokeWidth="1.8"
-                className={`pointer-events-none absolute right-2 h-3.5 w-3.5 ${isDark ? "text-stone-400" : "text-slate-500"}`}
+                className={`pointer-events-none absolute right-2 h-3 w-3 ${isDark ? "text-stone-500" : "text-slate-400"}`}
                 aria-hidden="true"
               >
                 <path d="M5 7.5 10 12.5 15 7.5" />
@@ -834,7 +844,7 @@ export default function Home() {
             </div>
           </div>
           <div
-            className={`inline-flex items-center gap-1 rounded-full border p-1 ${isDark ? "border-[var(--ji-border)] bg-[var(--ji-surface-muted)]" : "border-slate-200 bg-slate-50/80"
+            className={`inline-flex items-center gap-1 rounded-full border p-0.5 transition-colors duration-200 ${isDark ? "border-[var(--ji-border)] bg-[var(--ji-surface-muted)]" : "border-slate-200 bg-slate-50/80"
               }`}
           >
             <VoiceRecorder
@@ -854,19 +864,19 @@ export default function Home() {
             />
             {(loading || input.trim().length > 0) && (
               <>
-                <span className={`h-6 w-px ${isDark ? "bg-[var(--ji-border)]" : "bg-slate-200"}`} />
+                <span className={`h-5 w-px ${isDark ? "bg-[var(--ji-border)]" : "bg-slate-200"}`} />
                 <button
                   onClick={() => void sendMessage()}
                   disabled={loading || input.trim().length === 0}
-                  className={`inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-white shadow-sm transition-all duration-200 ${input.trim().length === 0 || loading
+                  className={`inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-white transition-all duration-200 ${input.trim().length === 0 || loading
                     ? "bg-transparent text-[var(--ji-brand)] shadow-none"
-                    : "bg-[var(--ji-brand)] hover:bg-[var(--ji-brand-strong)] hover:scale-[1.02]"
+                    : "bg-[var(--ji-brand)] shadow-sm hover:bg-[var(--ji-brand-strong)] hover:scale-[1.04]"
                     } cursor-pointer disabled:cursor-not-allowed disabled:opacity-90`}
                 >
                   {loading ? (
-                    <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-r-transparent" />
+                    <span className="inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-r-transparent" />
                   ) : (
-                    "↑"
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" className="h-4 w-4"><path d="M12 19V5M5 12l7-7 7 7" /></svg>
                   )}
                 </button>
               </>
@@ -887,53 +897,54 @@ export default function Home() {
 
   return (
     <main className={`theme-${theme} relative h-screen overflow-hidden bg-[var(--background)] text-[var(--foreground)]`}>
-      <div
-        className="pointer-events-none absolute inset-x-0 top-0 h-1"
-        style={{ backgroundImage: "linear-gradient(to right, var(--ji-topbar-start), var(--ji-topbar-mid), var(--ji-topbar-end))" }}
-      />
       <div className="flex h-full">
         <section className="flex min-w-0 flex-1 flex-col">
-          <header className={`relative z-30 flex h-[64px] items-center justify-between px-3 md:px-8 ${isDark ? "border-b border-[var(--ji-border)] bg-[var(--background)]" : "border-b border-slate-200 bg-white/60"}`}>
-            <div className="flex items-center gap-2">
-              <JanInfraBadge className="h-8 w-8" style={{ color: brandColor }} />
+          <header className={`relative z-30 flex h-[56px] items-center justify-between px-4 md:h-[60px] md:px-8 ${isDark ? "bg-[var(--background)]" : "bg-[var(--background)]"}`}>
+            <div className="flex items-center gap-3">
+              <JanInfraBadge className="h-7 w-7 md:h-8 md:w-8" style={{ color: brandColor }} />
+              <span className={`text-[16px] font-semibold tracking-[-0.03em] md:text-[17px] ${isDark ? "text-stone-100" : "text-slate-900"}`}>JanInfra</span>
+            </div>
+            <div className="ml-auto flex items-center gap-1.5 md:gap-2">
               <button
                 onClick={resetConversation}
-                className={`inline-flex h-10 items-center gap-1.5 rounded-full border px-3 text-xs md:px-3.5 md:text-sm ${isDark ? "border-[var(--ji-border)] bg-[var(--ji-surface)] text-stone-200 hover:bg-[var(--ji-surface-muted)]" : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50"}`}
+                className={`inline-flex h-9 items-center gap-1.5 rounded-lg px-2.5 text-xs font-medium transition-colors duration-200 md:px-3 md:text-[13px] ${isDark ? "text-stone-300 hover:text-stone-100 hover:bg-white/[0.08]" : "text-slate-600 hover:text-slate-900 hover:bg-black/[0.04]"}`}
               >
-                <PlusIcon className="h-3.5 w-3.5" />
-                New search
+                <PlusIcon className="h-4 w-4" />
+                <span className="hidden sm:inline">New search</span>
               </button>
-            </div>
-            <div className="ml-auto flex items-center gap-2">
               <button
                 onClick={() => setTheme((p) => (p === "dark" ? "light" : "dark"))}
-                className={`inline-flex h-10 items-center gap-1.5 rounded-full border px-3 text-xs md:text-sm ${isDark ? "border-[var(--ji-border)] bg-[var(--ji-surface)] text-stone-200 hover:bg-[var(--ji-surface-muted)]" : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50"}`}
+                className={`inline-flex h-9 w-9 items-center justify-center rounded-lg transition-colors duration-200 ${isDark ? "text-stone-300 hover:text-stone-100 hover:bg-white/[0.08]" : "text-slate-600 hover:text-slate-900 hover:bg-black/[0.04]"}`}
+                aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
               >
-                {isDark ? <SunIcon className="h-4 w-4" /> : <MoonIcon className="h-4 w-4" />}
-                {isDark ? "Light" : "Dark"}
+                {isDark ? <SunIcon className="h-[18px] w-[18px]" /> : <MoonIcon className="h-[18px] w-[18px]" />}
               </button>
               <div className="relative">
                 <button
                   onClick={() => setShowSettingsMenu((p) => !p)}
-                  className={`inline-flex h-10 items-center gap-2 rounded-full border px-3 text-xs md:text-sm ${isDark ? "border-[var(--ji-border)] bg-[var(--ji-surface)] text-stone-300 hover:bg-[var(--ji-surface-muted)]" : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50"}`}
+                  className={`inline-flex h-9 w-9 items-center justify-center rounded-lg transition-colors duration-200 ${isDark ? "text-stone-300 hover:text-stone-100 hover:bg-white/[0.08]" : "text-slate-600 hover:text-slate-900 hover:bg-black/[0.04]"}`}
                   aria-label="Open account menu"
                 >
-                  <UserIcon className="h-4 w-4" />
-                  <span className="max-w-[110px] truncate">{session && userLabel ? userLabel : "Account"}</span>
-                  <GearIcon className="h-4 w-4" />
+                  <UserIcon className="h-[18px] w-[18px]" />
                 </button>
                 {showSettingsMenu && (
                   <>
                     <button
                       onClick={() => setShowSettingsMenu(false)}
-                      className="fixed inset-0 z-40 md:hidden"
+                      className="fixed inset-0 z-40"
                       aria-label="Close account menu"
                     />
-                    <div className={`fixed left-3 right-3 top-[76px] z-50 rounded-2xl border p-2 shadow-xl md:absolute md:left-auto md:right-0 md:top-full md:mt-2 md:w-56 ${isDark ? "border-[var(--ji-border)] bg-[var(--ji-surface)]" : "border-slate-200 bg-white"}`}>
-                      <div className={`mb-2 mt-1 border-t pt-2 ${isDark ? "border-[var(--ji-border)]" : "border-slate-200"}`}>
-                        <p className={`mb-1 px-1 text-[11px] uppercase tracking-[0.12em] ${isDark ? "text-stone-500" : "text-slate-500"}`}>Language</p>
+                    <div className={`fixed left-3 right-3 top-[68px] z-50 rounded-2xl border p-2.5 shadow-xl md:absolute md:left-auto md:right-0 md:top-full md:mt-2 md:w-60 ${isDark ? "border-[var(--ji-border)] bg-[var(--ji-surface)]" : "border-slate-200 bg-white"}`}>
+                      {session && userLabel && (
+                        <div className={`mb-2 px-2 pb-2 ${isDark ? "border-b border-[var(--ji-border)]" : "border-b border-slate-100"}`}>
+                          <p className={`text-sm font-medium ${isDark ? "text-stone-200" : "text-slate-800"}`}>{userLabel}</p>
+                          {session.user.email && <p className={`text-xs mt-0.5 ${isDark ? "text-stone-500" : "text-slate-400"}`}>{session.user.email}</p>}
+                        </div>
+                      )}
+                      <div className={`mb-1 mt-1 ${isDark ? "" : ""}`}>
+                        <p className={`mb-1.5 px-2 text-[11px] font-medium uppercase tracking-[0.1em] ${isDark ? "text-stone-500" : "text-slate-400"}`}>Language</p>
                         <div
-                          className={`relative inline-flex h-10 w-full items-center rounded-full border ${isDark ? "border-[var(--ji-border)] bg-[var(--ji-surface)]" : "border-slate-200 bg-white"
+                          className={`relative inline-flex h-9 w-full items-center rounded-lg border ${isDark ? "border-[var(--ji-border)] bg-[var(--ji-surface)]" : "border-slate-200 bg-slate-50"
                             }`}
                         >
                           <select
@@ -954,7 +965,7 @@ export default function Home() {
                             fill="none"
                             stroke="currentColor"
                             strokeWidth="1.8"
-                            className={`pointer-events-none absolute right-3 h-3.5 w-3.5 ${isDark ? "text-stone-400" : "text-slate-500"}`}
+                            className={`pointer-events-none absolute right-3 h-3.5 w-3.5 ${isDark ? "text-stone-400" : "text-slate-400"}`}
                             aria-hidden="true"
                           >
                             <path d="M5 7.5 10 12.5 15 7.5" />
@@ -967,7 +978,7 @@ export default function Home() {
                             handleSignOut();
                             setShowSettingsMenu(false);
                           }}
-                          className={`w-full rounded-lg px-3 py-2 text-left text-sm ${isDark ? "text-stone-200 hover:bg-[var(--ji-surface-muted)]" : "text-slate-800 hover:bg-slate-50"}`}
+                          className={`mt-1 w-full rounded-lg px-2 py-2 text-left text-sm transition-colors duration-150 ${isDark ? "text-stone-300 hover:bg-[var(--ji-surface-muted)]" : "text-slate-700 hover:bg-black/[0.04]"}`}
                         >
                           Sign out
                         </button>
@@ -980,7 +991,7 @@ export default function Home() {
                             setShowAuthModal(true);
                             setShowSettingsMenu(false);
                           }}
-                          className={`w-full rounded-lg px-3 py-2 text-left text-sm ${isDark ? "text-stone-200 hover:bg-[var(--ji-surface-muted)]" : "text-slate-800 hover:bg-slate-50"}`}
+                          className={`mt-1 w-full rounded-lg px-2 py-2 text-left text-sm transition-colors duration-150 ${isDark ? "text-stone-300 hover:bg-[var(--ji-surface-muted)]" : "text-slate-700 hover:bg-black/[0.04]"}`}
                         >
                           Sign in
                         </button>
@@ -993,32 +1004,22 @@ export default function Home() {
           </header>
 
           {!hasConversation ? (
-            <div className="flex flex-1 flex-col items-center justify-center px-4 pb-10">
-              <div className="mb-1 flex items-center justify-center gap-2.5 md:gap-3.5">
-                <FlowerSpinner className={`h-8 w-8 md:h-10 md:w-10 ${isDark ? "text-[var(--ji-brand)]/90" : "text-[var(--ji-brand)]"}`} />
-                <p className={`text-center text-xl font-medium leading-tight md:text-3xl ${isDark ? "text-stone-100" : "text-slate-800"}`}>
-                  {heroCopy.primary}
+            <div className="flex flex-1 flex-col items-center justify-center px-5 pb-16 md:px-8">
+              <div className="mb-8 flex flex-col items-center text-center md:mb-10">
+                <h1 className={`text-[28px] font-semibold leading-[1.15] tracking-[-0.02em] md:text-[40px] ${isDark ? "text-stone-100" : "text-slate-800"}`}>
+                  {heroCopy.headline}
+                </h1>
+                <p className={`mt-3 text-[15px] leading-relaxed md:mt-4 md:text-[17px] ${isDark ? "text-stone-400" : "text-slate-500"}`}>
+                  {heroCopy.sub}
                 </p>
               </div>
-              <div className="mt-2 w-full max-w-3xl">{renderComposer()}</div>
-
+              <div className="w-full max-w-2xl">{renderComposer(true)}</div>
             </div>
           ) : (
             <div className="relative flex min-h-0 flex-1 flex-col">
               <div
                 ref={chatScrollRef}
-                className="flex-1 overflow-y-auto px-3 pb-64 pt-4 md:px-8 md:pb-72"
-                style={
-                  !isDark
-                    ? {
-                      backgroundColor: "#f7f4ee",
-                      backgroundImage:
-                        "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180' viewBox='0 0 180 180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.95' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='table' tableValues='0 0.08'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E\")",
-                      backgroundSize: "180px 180px",
-                      backgroundBlendMode: "multiply",
-                    }
-                    : undefined
-                }
+                className="flex-1 overflow-y-auto px-4 pb-64 pt-6 md:px-8 md:pb-72"
               >
                 <div className="mx-auto w-full max-w-4xl space-y-8 md:space-y-10">
                   {messages.map((message) => {
@@ -1126,7 +1127,7 @@ export default function Home() {
               </div>
 
               <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 px-3 pb-3 pt-10 md:px-8 md:pb-4 md:pt-16">
-                <div className={`pointer-events-none absolute inset-x-0 bottom-0 h-44 ${isDark ? "bg-gradient-to-t from-[var(--background)] via-[var(--background)] to-transparent" : "bg-gradient-to-t from-white via-white/88 to-transparent"}`} />
+                <div className={`pointer-events-none absolute inset-x-0 bottom-0 h-44 ${isDark ? "bg-gradient-to-t from-[var(--background)] via-[var(--background)] to-transparent" : "bg-gradient-to-t from-[var(--background)] via-[var(--background)]/90 to-transparent"}`} />
                 <div className="relative mx-auto w-full max-w-4xl pointer-events-auto">{renderComposer()}</div>
                 {hasUncertainEvidence && (
                   <p
