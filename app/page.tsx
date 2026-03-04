@@ -988,7 +988,7 @@ export default function Home() {
           {!hasConversation ? (
             <div className="flex flex-1 flex-col items-center justify-center px-5 pb-16 md:px-8">
               <div className="mb-8 flex flex-col items-center text-center md:mb-10">
-                <FlowerSpinner className="mb-5 h-10 w-10 text-[var(--ji-brand)]" />
+                <JanInfraBadge className="animate-hologram mb-5 h-12 w-12 text-[var(--ji-brand)] md:h-14 md:w-14" />
                 <h1 className={`text-[28px] font-semibold leading-[1.15] tracking-[-0.02em] md:text-[40px] ${isDark ? "text-stone-100" : "text-slate-800"}`}>
                   {heroCopy.headline}
                 </h1>
