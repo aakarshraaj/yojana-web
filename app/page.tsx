@@ -129,41 +129,65 @@ const chatApiBaseUrl = (
 
 const markdownComponents = (isDark: boolean) => ({
   h1: (props: React.HTMLAttributes<HTMLHeadingElement>) => (
-    <h1 className={`mt-5 text-3xl font-semibold tracking-tight ${isDark ? "text-stone-100" : "text-slate-900"}`} {...props} />
+    <h1 className={`mb-6 mt-8 border-b pb-4 text-3xl font-bold tracking-tight ${isDark ? "border-white/10 text-stone-100" : "border-slate-200 text-slate-900"}`} {...props} />
   ),
   h2: (props: React.HTMLAttributes<HTMLHeadingElement>) => (
-    <h2 className={`mt-5 text-2xl font-semibold tracking-tight ${isDark ? "text-stone-100" : "text-slate-900"}`} {...props} />
+    <h2 className={`mb-4 mt-8 border-b pb-2 text-xl font-semibold tracking-tight ${isDark ? "border-white/5 text-stone-100" : "border-slate-100 text-slate-900"}`} {...props} />
   ),
   h3: (props: React.HTMLAttributes<HTMLHeadingElement>) => (
-    <h3 className={`mt-4 text-lg font-semibold ${isDark ? "text-stone-100" : "text-slate-900"}`} {...props} />
+    <h3 className={`mb-3 mt-6 text-lg font-medium tracking-tight ${isDark ? "text-stone-200" : "text-slate-800"}`} {...props} />
   ),
   p: (props: React.HTMLAttributes<HTMLParagraphElement>) => (
-    <p className={`my-2.5 leading-7 ${isDark ? "text-stone-200" : "text-slate-700"}`} {...props} />
+    <p className={`my-4 leading-[1.75] text-[15px] md:text-[16px] ${isDark ? "text-stone-300" : "text-slate-600"}`} {...props} />
   ),
   ul: (props: React.HTMLAttributes<HTMLUListElement>) => (
-    <ul className={`my-3 list-disc space-y-1.5 pl-6 ${isDark ? "text-stone-200" : "text-slate-700"}`} {...props} />
+    <ul className={`my-5 list-disc space-y-2.5 pl-6 text-[15px] leading-[1.75] marker:text-[var(--ji-brand)] md:text-[16px] ${isDark ? "text-stone-300" : "text-slate-600"}`} {...props} />
   ),
   ol: (props: React.HTMLAttributes<HTMLOListElement>) => (
-    <ol className={`my-3 list-decimal space-y-1.5 pl-6 ${isDark ? "text-stone-200" : "text-slate-700"}`} {...props} />
+    <ol className={`my-5 list-decimal space-y-2.5 pl-6 text-[15px] leading-[1.75] marker:font-medium marker:text-[var(--ji-brand)] md:text-[16px] ${isDark ? "text-stone-300" : "text-slate-600"}`} {...props} />
   ),
   a: (props: React.AnchorHTMLAttributes<HTMLAnchorElement>) => (
     <a
-      className={`underline decoration-1 underline-offset-2 transition-colors duration-200 ${isDark ? "text-sky-300 hover:text-sky-200" : "text-sky-700 hover:text-sky-800"}`}
+      className={`font-medium underline decoration-[var(--ji-brand)]/40 underline-offset-4 transition-all duration-200 hover:text-[var(--ji-brand)] hover:decoration-[var(--ji-brand)] ${isDark ? "text-stone-200" : "text-slate-800"}`}
       target="_blank"
       rel="noreferrer"
       {...props}
     />
   ),
+  strong: (props: React.HTMLAttributes<HTMLElement>) => (
+    <strong className={`font-semibold ${isDark ? "text-stone-100" : "text-slate-900"}`} {...props} />
+  ),
+  blockquote: (props: React.HTMLAttributes<HTMLElement>) => (
+    <blockquote className={`my-6 rounded-r-xl border-l-4 border-[var(--ji-brand)] py-3 pl-5 pr-4 italic md:pr-6 ${isDark ? "bg-white/[0.02] text-stone-400" : "bg-black/[0.02] text-slate-500"}`} {...props} />
+  ),
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  code: ({ inline, className, children, ...props }: any) => {
+    if (!inline) {
+      return (
+        <code className={className} {...props}>
+          {children}
+        </code>
+      );
+    }
+    return (
+      <code className={`rounded-md px-1.5 py-0.5 text-[0.85em] font-medium tracking-wide ${isDark ? "bg-white/10 text-stone-200" : "bg-black/5 text-slate-800"}`} {...props}>
+        {children}
+      </code>
+    );
+  },
+  pre: (props: React.HTMLAttributes<HTMLPreElement>) => (
+    <pre className={`my-6 overflow-x-auto rounded-xl p-4 text-[14px] leading-relaxed shadow-sm md:p-5 ${isDark ? "border border-white/10 bg-[#1c1a18]" : "border border-slate-200 bg-slate-50 text-slate-800"}`} {...props} />
+  ),
   table: (props: React.HTMLAttributes<HTMLTableElement>) => (
-    <div className="my-3 overflow-x-auto">
-      <table className={`w-full border-collapse text-sm ${isDark ? "text-stone-200" : "text-slate-700"}`} {...props} />
+    <div className="my-6 overflow-x-auto rounded-xl border border-[var(--ji-border)] shadow-sm">
+      <table className={`w-full border-collapse text-left text-sm ${isDark ? "text-stone-200" : "text-slate-700"}`} {...props} />
     </div>
   ),
   th: (props: React.HTMLAttributes<HTMLTableCellElement>) => (
-    <th className={`border px-2 py-1 text-left ${isDark ? "border-[var(--ji-border)]" : "border-slate-200"}`} {...props} />
+    <th className={`border-b p-3 font-semibold md:p-4 ${isDark ? "border-white/10 bg-white/[0.02] text-stone-200" : "border-slate-200 bg-slate-50 text-slate-800"}`} {...props} />
   ),
   td: (props: React.HTMLAttributes<HTMLTableCellElement>) => (
-    <td className={`border px-2 py-1 ${isDark ? "border-[var(--ji-border)]" : "border-slate-200"}`} {...props} />
+    <td className={`border-b p-3 md:p-4 ${isDark ? "border-white/5" : "border-slate-100"}`} {...props} />
   ),
 });
 
